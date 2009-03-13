@@ -1,0 +1,17 @@
+
+
+These example programs are written for use with the libdc1394 library
+available at www.sourceforge.net.
+
+These example programs are not meant to be just compiled and run.  The 
+source contains near the top of the file a configuration definition section
+that should be edited by each user to conform to their particular setup,
+before it is compiled.
+
+The files "conversions.h" and "conversions.cpp" originate from the
+coriander project, which is an excellent IIDC camera GUI that also works
+with the libdc1394 library.  These files provide functionality to convert
+bayer tile pattern images to color images.
+
+This software is provided under the Lesser General Public License (or
+LGPL), a copy of which is given in the included LICENSE file.
