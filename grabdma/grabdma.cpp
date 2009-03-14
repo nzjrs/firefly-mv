@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 #include <libraw1394/raw1394.h>
-#include <libdc1394/dc1394_control.h>
+#include <libdc1394/control.h>
 #include <stdlib.h>
 #include <sys/time.h>
 

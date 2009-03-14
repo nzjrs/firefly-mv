@@ -14,14 +14,12 @@
 
 # compilation flags
 CPPFLAGS += -I. 
-# libdc1394 installed in /usr/local/include location
-CPPFLAGS += -I/usr/local/include
 CPPFLAGS += -Wall -g
 CPPFLAGS += -DLINUX
-#CPPFLAGS += -Wall -O3
+CPPFLAGS += `pkg-config --cflags libdc1394-2`
 
 LDFLAGS	+= -L. 
-LIBS    += -ldc1394 -lraw1394 -pthread 
+LIBS += `pkg-config --libs libdc1394-2` 
 
 # executable name and contents
 EXEC1		= grabgrey

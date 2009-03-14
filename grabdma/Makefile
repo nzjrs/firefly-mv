@@ -16,10 +16,10 @@
 CPPFLAGS += -I. 
 CPPFLAGS += -Wall -g
 CPPFLAGS += -DLINUX
-#CPPFLAGS += -Wall -O3
+CPPFLAGS += `pkg-config --cflags libdc1394-2`
 
 LDFLAGS	+= -L. 
-LIBS    += -ldc1394_control -lraw1394 -pthread 
+LIBS    += `pkg-config --libs libdc1394-2`
 
 # executable name and contents
 EXEC1		= grabdma

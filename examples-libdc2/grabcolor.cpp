@@ -27,8 +27,7 @@
  *************************************************************************/
 
 #include <stdio.h>
-#include <dc1394/dc1394_control.h>
-#include <dc1394/dc1394_utils.h>
+#include <dc1394/dc1394.h>
 #include <stdlib.h>
 #include <sys/time.h>
 
