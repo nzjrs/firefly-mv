@@ -1,0 +1,4 @@
+*.o
+john/camls
+john/color
+john/grey
