@@ -34,6 +34,9 @@
 
 #include "config.h"
 
+#define IMAGE_FILE_NAME "grey.pgm"
+#define MY_VIDEO_MODE DC1394_VIDEO_MODE_640x480_MONO8
+
 static void cleanup_and_exit(dc1394camera_t *camera)
 {
     dc1394_video_set_transmission(camera, DC1394_OFF);
@@ -44,9 +47,12 @@ static void cleanup_and_exit(dc1394camera_t *camera)
 
 int main(int argc, char *argv[])
 {
+    FILE* imagefile;
     dc1394_t * d;
     dc1394camera_t *camera;
+    dc1394video_frame_t *frame;
     dc1394error_t err;
+    unsigned int width, height;
 
     d = dc1394_new ();
     if (!d)
@@ -56,21 +62,46 @@ int main(int argc, char *argv[])
     if (!camera) 
         return 2;
 
-    dc1394_camera_print_info(camera, stdout);
 
-    err=dc1394_video_set_iso_speed(camera, DC1394_ISO_SPEED_400);
+    // setup capture
+    err=dc1394_video_set_iso_speed(camera, MY_CAMERA_ISO_SPEED);
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set iso speed");
 
-    err=dc1394_video_set_mode(camera, DC1394_VIDEO_MODE_640x480_RGB8);
-    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set video mode\n");
+    err=dc1394_video_set_mode(camera, MY_VIDEO_MODE);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set video mode");
 
-    err=dc1394_video_set_framerate(camera, DC1394_FRAMERATE_7_5);
-    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set framerate\n");
+    err=dc1394_video_set_framerate(camera, MY_CAMERA_FRAMERATE);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set framerate");
 
-    err=dc1394_capture_setup(camera,4, DC1394_CAPTURE_FLAGS_DEFAULT);
-    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not setup camera-\nmake sure that the video mode and framerate are\nsupported by your camera\n");
+    err=dc1394_capture_setup(camera, 4, DC1394_CAPTURE_FLAGS_DEFAULT);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not setup camera-\nmake sure that the video mode and framerate are\nsupported by your camera");
 
-    dc1394_camera_free(camera);
+    // have the camera start sending us data
+    err=dc1394_video_set_transmission(camera, DC1394_ON);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not start camera iso transmission");
+
+    // capture one frame
+    err=dc1394_capture_dequeue(camera, DC1394_CAPTURE_POLICY_WAIT, &frame);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not capture a frame");
+
+    // stop data transmission
+    err=dc1394_video_set_transmission(camera,DC1394_OFF);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not stop the camera");
+
+    // save image 
+    imagefile=fopen(IMAGE_FILE_NAME, "wb");
+    if( imagefile == NULL) {
+        perror( "Can't create '" IMAGE_FILE_NAME "'");
+        cleanup_and_exit(camera);
+    }
+    dc1394_get_image_size_from_video_mode(camera, MY_VIDEO_MODE, &width, &height);
+    fprintf(imagefile,"P5\n%u %u 255\n", width, height);
+    fwrite(frame->image, 1, height*width, imagefile);
+    fclose(imagefile);
+    printf("wrote: " IMAGE_FILE_NAME "\n");
+
+    // close camera
+    cleanup_and_exit(camera);
     dc1394_free (d);
 
     return 0;
