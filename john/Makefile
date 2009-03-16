@@ -21,7 +21,9 @@ CFLAGS += `pkg-config --cflags libdc1394-2`
 LDFLAGS	+= -L. 
 LIBS += `pkg-config --libs libdc1394-2` 
 
-all: camls color f7record f7playback
+BIN := camls color f7record f7playback
+
+all: $(BIN)
 
 f7record: format7-record-simple.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -39,5 +41,5 @@ color: color.c
 	$(CC) -c $(CFLAGS) $*.c
 
 clean:
-	rm -f *~ *.o 
+	rm -f *~ *.o $(BIN)
 
