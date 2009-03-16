@@ -1,4 +1,7 @@
 *.o
-john/camls
-john/color
-john/grey
+*.pgm
+*.ppm
+camls
+color
+grey
+
