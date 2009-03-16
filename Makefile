@@ -21,6 +21,10 @@ CFLAGS += `pkg-config --cflags libdc1394-2`
 LDFLAGS	+= -L. 
 LIBS += `pkg-config --libs libdc1394-2` 
 
+CFLAGS += `pkg-config --cflags gtk+-2.0`
+LIBS += `pkg-config --libs gtk+-2.0` 
+
+
 BIN := camls color f7record f7playback grey
 
 all: $(BIN)
@@ -39,6 +43,12 @@ color: color.c
 
 grey: grey.c
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+play-grey: play-grey.c
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(CFLAGS) $(GTKLIBS) $(GTKCFLAGS)
+
+play-color: play-color.c
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(CFLAGS) $(GTKLIBS) $(GTKCFLAGS)
 
 %.o:%.c
 	$(CC) -c $(CFLAGS) $*.c

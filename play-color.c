@@ -36,7 +36,10 @@
 
 #include "config.h"
 
-#define MY_VIDEO_MODE DC1394_VIDEO_MODE_640x480_MONO8
+#define MY_VIDEO_MODE DC1394_VIDEO_MODE_FORMAT7_0
+#define MY_COLOR_CODING DC1394_COLOR_CODING_RAW8
+#define MY_COLOR_FILTER DC1394_COLOR_FILTER_RGGB
+#define MY_BAYER_METHOD DC1394_BAYER_METHOD_NEAREST
 
 static void cleanup_and_exit(dc1394camera_t *camera)
 {
@@ -55,15 +58,30 @@ static gboolean delete_event( GtkWidget *widget, GdkEvent *event, gpointer data 
 static gboolean expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
     dc1394video_frame_t *frame = (dc1394video_frame_t *)data;
+
     if (frame && frame->image) {
-        gdk_draw_gray_image(
+        dc1394error_t err;
+        //debayer raw data into rgb
+        dc1394video_frame_t dest;
+
+        dest.image = (unsigned char *)malloc(frame->size[0]*frame->size[1]*3*sizeof(unsigned char));
+        dest.camera = frame->camera;
+        err=dc1394_debayer_frames(frame, &dest, MY_BAYER_METHOD); 
+        DC1394_ERR_RTN(err,"Could not debayer frames");
+
+        //debayer frames does not adjust destintion values for stride, etc
+        dest.size[0] = frame->size[0];
+        dest.size[1] = frame->size[1];
+        dest.stride = dest.size[0] * 3;
+
+        gdk_draw_rgb_image(
                 widget->window,
                 widget->style->fg_gc[GTK_STATE_NORMAL],
                 0, 0, 
-                frame->size[0] /*width*/ , frame->size[1] /*height*/, 
+                dest.size[0], dest.size[1], 
                 GDK_RGB_DITHER_NONE, 
-                frame->image, 
-                frame->stride);
+                dest.image, 
+                dest.stride);
     }
     return TRUE;
 }
@@ -93,6 +111,9 @@ int main(int argc, char *argv[])
 
     err=dc1394_video_set_mode(camera, MY_VIDEO_MODE);
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set video mode");
+
+    err=dc1394_format7_set_color_coding(camera, MY_VIDEO_MODE, MY_COLOR_CODING);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set color coding");
 
     err=dc1394_video_set_framerate(camera, MY_CAMERA_FRAMERATE);
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set framerate");
