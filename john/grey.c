@@ -34,7 +34,7 @@
 
 #include "config.h"
 
-#define IMAGE_FILE_NAME "grey.pgm"
+#define MY_IMAGE_FILE_NAME "grey.pgm"
 #define MY_VIDEO_MODE DC1394_VIDEO_MODE_640x480_MONO8
 
 static void cleanup_and_exit(dc1394camera_t *camera)
@@ -89,16 +89,16 @@ int main(int argc, char *argv[])
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not stop the camera");
 
     // save image 
-    imagefile=fopen(IMAGE_FILE_NAME, "wb");
+    imagefile=fopen(MY_IMAGE_FILE_NAME, "wb");
     if( imagefile == NULL) {
-        perror( "Can't create '" IMAGE_FILE_NAME "'");
+        perror( "Can't create '" MY_IMAGE_FILE_NAME "'");
         cleanup_and_exit(camera);
     }
     dc1394_get_image_size_from_video_mode(camera, MY_VIDEO_MODE, &width, &height);
     fprintf(imagefile,"P5\n%u %u 255\n", width, height);
     fwrite(frame->image, 1, height*width, imagefile);
     fclose(imagefile);
-    printf("wrote: " IMAGE_FILE_NAME "\n");
+    printf("wrote: " MY_IMAGE_FILE_NAME "\n");
 
     // close camera
     cleanup_and_exit(camera);
