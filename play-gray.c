@@ -45,59 +45,63 @@
 
 #define GREY 1
 
-char filename[1024] = { 0 };
-FILE *fp = NULL;
-uint8_t *buf = NULL;
-uint8_t *bayer = NULL;
-uint64_t current_frame = 0;
-dc1394video_frame_t header;
-long offset;
+typedef struct __playback
+{
+    char                *filename;
+    FILE                *fp;
+    uint8_t             *buf;
+    uint8_t             *bayer;
+    uint64_t            current_frame;
+    dc1394video_frame_t header;
+    long                offset;
+} playback_t;
 
 static int 
-renderframe(int i) 
+renderframe(int i, playback_t *play) 
 {
     size_t bytesread;
+    long total_bytes = (play->header).total_bytes;
+    long offset = play->offset;
 
     if( i < 0 )
         return 0;
 
-    printf("%d %lld\n", i, (i * header.total_bytes) + offset);
-
     // seek to frame
-    fseek( fp, (i * header.total_bytes) + offset, SEEK_SET );
+    fseek( play->fp, (i * total_bytes) + offset, SEEK_SET );
 
-    bytesread = fread( bayer, header.total_bytes, 1, fp );
+    bytesread = fread( play->bayer, total_bytes, 1, play->fp );
 
     if( bytesread != 1 )
         return 0;
 
 #if GREY
-    buf = bayer;
+    play->buf = play->bayer;
 #else
     dc1394error_t err;
     // invoke bayer decoding magic
     err=dc1394_bayer_decoding_8bit(
-            bayer, buf,
-            header.size[0], header.size[1], 
-            header.color_filter,
+            play->bayer, play->buf,
+            (play->header).size[0], (play->header).size[1], 
+            (play->header).color_filter,
             DC1394_BAYER_METHOD_NEAREST);
     DC1394_WRN(err,"Could not decode frame");
 #endif
-
     return 1;
 }
 
 static gboolean 
 canvas_button_press( GtkWidget *widget, GdkEventButton *event, gpointer data )
 {
+    playback_t *play = (playback_t *)data;
+
     if( event->button == 1 ) {
-        current_frame++;
-        if( ! renderframe( current_frame ) ) current_frame--;
+        play->current_frame++;
+        if( ! renderframe( play->current_frame, play ) ) play->current_frame--;
     } else if ( event->button == 3 ) {
-        if( current_frame > 0 ) current_frame--;
-        renderframe( current_frame );
+        if( play->current_frame > 0 ) play->current_frame--;
+        renderframe( play->current_frame, play );
     }
-    g_print("frame: %lld\n", current_frame);
+    g_print("frame: %lld\n", play->current_frame);
     gtk_widget_queue_draw_area( widget, 0, 0, 
             widget->allocation.width, widget->allocation.height);
     return TRUE;
@@ -106,19 +110,26 @@ canvas_button_press( GtkWidget *widget, GdkEventButton *event, gpointer data )
 static gboolean
 expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
+    playback_t *play = (playback_t *)data;
+
 #if GREY
     gdk_draw_gray_image(
             widget->window,
             widget->style->fg_gc[GTK_STATE_NORMAL],
             0, 0, 
-            header.size[0] /*width*/ , header.size[1] /*height*/, 
+            play->header.size[0] /*width*/ , play->header.size[1] /*height*/, 
             GDK_RGB_DITHER_NONE, 
-            buf, 
-            header.stride);
+            play->buf, 
+            play->header.stride);
 #else
-    gdk_draw_rgb_image( widget->window, widget->style->fg_gc[GTK_STATE_NORMAL],
-            0, 0, widget->allocation.width, widget->allocation.height, 
-            GDK_RGB_DITHER_NONE, buf, widget->allocation.width * 3 );
+    gdk_draw_rgb_image( 
+            widget->window, 
+            widget->style->fg_gc[GTK_STATE_NORMAL],
+            0, 0, 
+            widget->allocation.width, widget->allocation.height, 
+            GDK_RGB_DITHER_NONE, 
+            play->buf, 
+            widget->allocation.width * 3 );
 #endif
 
     return TRUE;
@@ -139,26 +150,30 @@ int main( int argc, char *argv[])
     GtkWidget *canvas;
     uint32_t width, height;
 
+    playback_t play = { 0 };
+
     if( argc < 2 ) {
         printf("usage: playback-simple <filename>\n");
         exit(1);
     }
-    strncpy(filename, argv[1], 1024);
 
-    fp = fopen(filename, "rb");
-    if( fp == NULL ) { 
+    play.filename = (char *) malloc (1024 * sizeof(char));
+    strncpy(play.filename, argv[1], 1024);
+
+    play.fp = fopen(play.filename, "rb");
+    if( play.fp == NULL ) { 
         perror("opening file");
         exit(1);
     }
 
     // read the frame format from the head of the file
-    offset = read_frame_binary_header(&header, fp);
-    width = header.size[0];
-    height = header.size[1];
+    play.offset = read_frame_binary_header(&(play.header), play.fp);
+    width = play.header.size[0];
+    height = play.header.size[1];
 
-    bayer = (uint8_t*) malloc(header.total_bytes);
+    play.bayer = (uint8_t*) malloc(play.header.total_bytes);
 # if !GREY
-    buf = (uint8_t*) malloc(width * height * 3 );
+    play.buf = (uint8_t*) malloc(width * height * 3 );
 #endif
 
     gtk_init( &argc, &argv );
@@ -182,7 +197,7 @@ int main( int argc, char *argv[])
     canvas = gtk_drawing_area_new();
     gtk_widget_set_size_request(canvas, width, height);
     g_signal_connect (G_OBJECT (canvas), "expose_event",  
-            G_CALLBACK (expose_event_callback), NULL);
+            G_CALLBACK (expose_event_callback), &play);
 
     gtk_widget_set_events(canvas, GDK_LEAVE_NOTIFY_MASK
             | GDK_BUTTON_PRESS_MASK
@@ -190,7 +205,7 @@ int main( int argc, char *argv[])
             | GDK_POINTER_MOTION_MASK );
 
     g_signal_connect( G_OBJECT(canvas), "button_press_event", 
-           G_CALLBACK(canvas_button_press), NULL );
+           G_CALLBACK(canvas_button_press), &play);
 
     gtk_box_pack_start(GTK_BOX(vbox), canvas, TRUE, TRUE, 0);
 
@@ -206,13 +221,13 @@ int main( int argc, char *argv[])
     gtk_widget_show_all( window );
 
     // render the first frame
-    renderframe(0);
+    renderframe(0, &play);
     
     // go
     gtk_main();
 
-    fclose(fp);
-    free( buf );
+    fclose(play.fp);
+    free(play.buf);
 
     return 0;
 }
