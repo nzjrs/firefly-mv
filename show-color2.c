@@ -35,19 +35,12 @@
 #include <dc1394/dc1394.h>
 
 #include "config.h"
+#include "utils.h"
 
 #define MY_VIDEO_MODE DC1394_VIDEO_MODE_FORMAT7_0
 #define MY_COLOR_CODING DC1394_COLOR_CODING_RAW8
 #define MY_COLOR_FILTER DC1394_COLOR_FILTER_RGGB
 #define MY_BAYER_METHOD DC1394_BAYER_METHOD_NEAREST
-
-static void cleanup_and_exit(dc1394camera_t *camera)
-{
-    dc1394_video_set_transmission(camera, DC1394_OFF);
-    dc1394_capture_stop(camera);
-    dc1394_camera_free(camera);
-    exit(1);
-}
 
 static gboolean delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
 {

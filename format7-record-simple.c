@@ -18,6 +18,7 @@
 #include <dc1394/dc1394.h>
 
 #include "config.h"
+#include "utils.h"
 
 #define s2s(status) ((status)==DC1394_SUCCESS?"OK":"FAILURE")
 
@@ -32,7 +33,6 @@ static void usage()
 
 int main(int argc, char **argv)
 {
-    int status;
     int duration = 0;
     char filename[1024] = { 0 };
     unsigned int speed, framerate, mode, width, height;

@@ -35,16 +35,9 @@
 #include <dc1394/dc1394.h>
 
 #include "config.h"
+#include "utils.h"
 
 #define MY_VIDEO_MODE DC1394_VIDEO_MODE_640x480_MONO8
-
-static void cleanup_and_exit(dc1394camera_t *camera)
-{
-    dc1394_video_set_transmission(camera, DC1394_OFF);
-    dc1394_capture_stop(camera);
-    dc1394_camera_free(camera);
-    exit(1);
-}
 
 static gboolean delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
 {
