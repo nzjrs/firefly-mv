@@ -25,30 +25,33 @@ CFLAGS += `pkg-config --cflags gtk+-2.0`
 LIBS += `pkg-config --libs gtk+-2.0` 
 
 
-BIN := camls color f7record f7playback grey
+BIN := camls grey show-gray show-color f7record
 
 all: $(BIN)
 
-f7record: format7-record-simple.o
+f7record: format7-record-simple.o utils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-f7playback: format7-playback-simple.o
+f7playback: format7-playback-simple.o utils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-camls: camls.o
+camls: camls.o utils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-color: color.c
+grey: grey.o utils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-grey: grey.c
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+show-gray: show-gray.o utils.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(GTKLIBS)
 
-play-grey: play-grey.c
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(CFLAGS) $(GTKLIBS) $(GTKCFLAGS)
+show-color: show-color.o utils.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(GTKLIBS)
 
-play-color: play-color.c
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(CFLAGS) $(GTKLIBS) $(GTKCFLAGS)
+show-gray.o: play-grey.c
+	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
+
+show-color.o: play-color.c
+	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
 
 %.o:%.c
 	$(CC) -c $(CFLAGS) $*.c
