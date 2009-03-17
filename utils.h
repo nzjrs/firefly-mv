@@ -1,6 +1,7 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#include <stdio.h>
 #include <dc1394/dc1394.h>
 
 /**
@@ -27,5 +28,15 @@ dc1394error_t setup_gray_capture(
  * Prints various information about the mode the camera is in
  */
 void print_video_mode_info( dc1394camera_t *camera , dc1394video_mode_t mode);
+
+/**
+ * Foo
+ */
+long write_frame_binary_header(dc1394video_frame_t *frame, FILE *fp);
+
+/**
+ * Foo
+ */
+long read_frame_binary_header(dc1394video_frame_t *frame, FILE *fp);
 
 #endif

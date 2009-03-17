@@ -25,15 +25,15 @@
 
 static void usage()
 {
-    printf( "usage: record <duration> <filename>\n"
-            "  specify duration in seconds\n");
+    printf( "usage: record <duration> <filename>\n\tspecify duration in seconds\n");
 }
 
 int main(int argc, char **argv)
 {
     int duration = 0;
+    int first = 1;
     char filename[1024] = { 0 };
-    unsigned int width, height;
+    uint32_t width, height;
     dc1394_t * d;
     dc1394camera_t *camera;
     dc1394error_t err;
@@ -93,6 +93,12 @@ int main(int argc, char **argv)
         // get a single frame
         err=dc1394_capture_dequeue(camera, DC1394_CAPTURE_POLICY_WAIT, &frame);
         DC1394_WRN(err,"Could not capture a frame");
+
+        //on the first time around, write header to disk
+        if (first) {
+            first = 0;
+            write_frame_binary_header(frame, fp);
+        }
 
         // write it to disk
         fwrite(frame->image, frame->total_bytes, 1, fp);
