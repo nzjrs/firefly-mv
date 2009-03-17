@@ -43,6 +43,9 @@ dc1394error_t setup_color_capture(
             height);
     DC1394_ERR_RTN(err,"Could not set roi");
 
+    err=dc1394_video_set_mode(camera, video_mode);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set video mode");
+
     err=dc1394_capture_setup(camera, 4, DC1394_CAPTURE_FLAGS_DEFAULT);
     DC1394_ERR_RTN(err,"Could not setup camera-\nmake sure that the video mode and framerate are\nsupported by your camera");
 #endif
