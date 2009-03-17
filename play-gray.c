@@ -56,7 +56,6 @@ long offset;
 static int 
 renderframe(int i) 
 {
-    dc1394error_t err;
     size_t bytesread;
 
     if( i < 0 )
@@ -75,6 +74,7 @@ renderframe(int i)
 #if GREY
     buf = bayer;
 #else
+    dc1394error_t err;
     // invoke bayer decoding magic
     err=dc1394_bayer_decoding_8bit(
             bayer, buf,
@@ -114,7 +114,7 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
             header.size[0] /*width*/ , header.size[1] /*height*/, 
             GDK_RGB_DITHER_NONE, 
             buf, 
-            /*frame->stride*/640);
+            header.stride);
 #else
     gdk_draw_rgb_image( widget->window, widget->style->fg_gc[GTK_STATE_NORMAL],
             0, 0, widget->allocation.width, widget->allocation.height, 
