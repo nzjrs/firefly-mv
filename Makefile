@@ -50,10 +50,13 @@ play-gray: play-gray.o utils.o
 play-gray.o: play-gray.c
 	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
 
-show: show.o utils.o
+show: show.o utils.o gtkutils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(GTKLIBS)
 
 show.o: show.c
+	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
+
+gtkutils.o: gtkutils.c
 	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
 
 %.o:%.c
