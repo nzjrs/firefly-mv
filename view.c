@@ -124,6 +124,9 @@ int main(int argc, char *argv[])
     }
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(view.camera),"Could not setup camera");
 
+    err=dc1394_video_set_framerate(view.camera, DC1394_FRAMERATE_30);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(view.camera),"Could not set framerate");
+
     // have the camera start sending us data
     err=dc1394_video_set_transmission(view.camera, DC1394_ON);
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(view.camera),"Could not start camera iso transmission");
