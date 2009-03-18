@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include <dc1394/dc1394.h>
 
+typedef enum {
+    GRAY =      'g',
+    COLOR =     'c',
+    FORMAT7 =   '7'
+} show_mode_t;
+
 /**
  * Cleanup function
  */

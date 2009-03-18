@@ -37,12 +37,6 @@
 #include "config.h"
 #include "utils.h"
 
-typedef enum {
-    GRAY =      'g',
-    COLOR =     'c',
-    FORMAT7 =   '7'
-} show_mode_t;
-
 static show_mode_t show;
 
 static gboolean delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
