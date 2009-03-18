@@ -25,7 +25,7 @@ CFLAGS += `pkg-config --cflags gtk+-2.0`
 LIBS += `pkg-config --libs gtk+-2.0` 
 
 
-BIN := camls grey record-gray play-gray show
+BIN := camls grey record-gray play-gray show view
 
 all: $(BIN)
 
@@ -57,6 +57,12 @@ show.o: show.c
 	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
 
 gtkutils.o: gtkutils.c
+	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
+
+view: view.o utils.o gtkutils.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(GTKLIBS)
+
+view.o: view.c
 	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
 
 %.o:%.c
