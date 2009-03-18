@@ -111,7 +111,7 @@ static void print_video_mode( uint32_t format )
 
 }
 
-static void print_color_coding( uint32_t color_id )
+static void print_color_coding(dc1394color_coding_t color_id)
 {
     switch( color_id ) {
         print_case(DC1394_COLOR_CODING_MONO8);
@@ -131,7 +131,7 @@ static void print_color_coding( uint32_t color_id )
     }
 }
 
-static void print_color_filter( dc1394color_filter_t color)
+static void print_color_filter(dc1394color_filter_t color)
 {
     switch ( color ) {
         print_case(DC1394_COLOR_FILTER_RGGB);
@@ -142,6 +142,58 @@ static void print_color_filter( dc1394color_filter_t color)
         dc1394_log_error("Unknown color filter = %d\n",color);
         exit(1);
     }
+}
+
+void print_frame_info(dc1394video_frame_t *frame)
+{
+    dc1394video_mode_t mode = frame->video_mode;
+
+    printf("-------- Frame ---------\n");
+    printf("size:   %dw x %dh\n", frame->size[0], frame->size[1]);
+    printf("roi:    %d,%d\n", frame->position[0], frame->position[1]);
+    printf("bpp     %d\n", frame->data_depth);
+    printf("stride: %d\n", frame->stride);
+    printf("bytes:  %lld\n", frame->total_bytes);
+    printf("time:   %lld\n", frame->timestamp);
+
+    printf("video mode:\n        ");print_video_mode(mode);printf("\n");
+    printf("color coding:\n        ");print_color_coding(frame->color_coding);printf("\n");
+    if ((mode == DC1394_VIDEO_MODE_FORMAT7_0) ||
+        (mode == DC1394_VIDEO_MODE_FORMAT7_1) ||
+        (mode == DC1394_VIDEO_MODE_FORMAT7_2) ||
+        (mode == DC1394_VIDEO_MODE_FORMAT7_3) ||
+        (mode == DC1394_VIDEO_MODE_FORMAT7_4) ||
+        (mode == DC1394_VIDEO_MODE_FORMAT7_5) ||
+        (mode == DC1394_VIDEO_MODE_FORMAT7_6) ||
+        (mode == DC1394_VIDEO_MODE_FORMAT7_7)) {
+        printf("color filter:\n        ");print_color_filter(frame->color_filter);printf("\n");
+    } else {
+        printf("color filter:\n        N/A\n");
+    }
+
+//    dc1394color_coding_t     color_coding;          /* the color coding used. This field is valid for all video modes. */
+//    dc1394color_filter_t     color_filter;          /* the color filter used. This field is valid only for RAW modes and IIDC 1.31 */
+//    uint32_t                 yuv_byte_order;        /* the order of the fields for 422 formats: YUYV or UYVY */
+//    uint32_t                 data_depth;            /* the number of bits per pixel. The number of grayscale levels is 2^(this_number).
+//                                                       This is independent from the colour coding */
+//    uint32_t                 stride;                /* the number of bytes per image line */
+//    dc1394video_mode_t       video_mode;            /* the video mode used for capturing this frame */
+//    uint64_t                 total_bytes;           /* the total size of the frame buffer in bytes. May include packet-
+//                                                       multiple padding and intentional padding (vendor specific) */
+//    uint32_t                 image_bytes;           /* the number of bytes used for the image (image data only, no padding) */
+//    uint32_t                 padding_bytes;         /* the number of extra bytes, i.e. total_bytes-image_bytes.  */
+//    uint32_t                 packet_size;           /* the size of a packet in bytes. (IIDC data) */
+//    uint32_t                 packets_per_frame;     /* the number of packets per frame. (IIDC data) */
+//    uint64_t                 timestamp;             /* the unix time [microseconds] at which the frame was captured in
+//                                                       the video1394 ringbuffer */
+//    uint32_t                 frames_behind;         /* the number of frames in the ring buffer that are yet to be accessed by the user */
+//    dc1394camera_t           *camera;               /* the parent camera of this frame */
+//    uint32_t                 id;                    /* the frame position in the ring buffer */
+//    uint64_t                 allocated_image_bytes; /* amount of memory allocated in for the *image field. */
+//    dc1394bool_t             little_endian;         /* DC1394_TRUE if little endian (16bpp modes only),
+//                                                       DC1394_FALSE otherwise */
+//    dc1394bool_t             data_in_padding;       /* DC1394_TRUE if data is present in the padding bytes in IIDC 1.32 format,
+//                                                       DC1394_FALSE otherwise */
 }
 
 void print_video_mode_info( dc1394camera_t *camera , dc1394video_mode_t mode)
@@ -225,6 +277,7 @@ long write_frame_binary_header(dc1394video_frame_t *frame, FILE *fp)
     fwrite(&(frame->color_filter), sizeof(dc1394color_filter_t), 1, fp);
     fwrite(&(frame->stride), sizeof(uint32_t), 1, fp);
 
+    print_frame_info(frame);
     printf("Wrote %ld bytes\n", nbytes);
 
     return nbytes;
