@@ -1,6 +1,7 @@
 *.o
 *.pgm
 *.ppm
+*.bin
 camls
 color
 grey
