@@ -37,7 +37,13 @@
 #include "config.h"
 #include "utils.h"
 
-#define MY_VIDEO_MODE DC1394_VIDEO_MODE_640x480_MONO8
+typedef enum {
+    GRAY =      'g',
+    COLOR =     'c',
+    FORMAT7 =   '7'
+} show_mode_t;
+
+static show_mode_t show;
 
 static gboolean delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
 {
@@ -49,14 +55,54 @@ static gboolean expose_event_callback (GtkWidget *widget, GdkEventExpose *event,
 {
     dc1394video_frame_t *frame = (dc1394video_frame_t *)data;
     if (frame && frame->image) {
-        gdk_draw_gray_image(
-                widget->window,
-                widget->style->fg_gc[GTK_STATE_NORMAL],
-                0, 0, 
-                frame->size[0] /*width*/ , frame->size[1] /*height*/, 
-                GDK_RGB_DITHER_NONE, 
-                frame->image, 
-                frame->stride);
+        //debayer raw data into rgb
+        dc1394error_t err;
+        dc1394video_frame_t dest;
+
+        switch (show) {
+            case GRAY:
+                gdk_draw_gray_image(
+                        widget->window,
+                        widget->style->fg_gc[GTK_STATE_NORMAL],
+                        0, 0, 
+                        frame->size[0] /*width*/ , frame->size[1] /*height*/, 
+                        GDK_RGB_DITHER_NONE, 
+                        frame->image, 
+                        frame->stride);
+                break;
+            case COLOR:
+                dest.image = (unsigned char *)malloc(frame->size[0]*frame->size[1]*3*sizeof(unsigned char));
+                dest.color_coding = DC1394_COLOR_CODING_RGB8;
+
+                err=dc1394_convert_frames(frame, &dest); 
+                DC1394_ERR_RTN(err,"Could not convert frames");
+
+                gdk_draw_rgb_image(
+                        widget->window,
+                        widget->style->fg_gc[GTK_STATE_NORMAL],
+                        0, 0, 
+                        frame->size[0], frame->size[1], 
+                        GDK_RGB_DITHER_NONE, 
+                        dest.image, 
+                        frame->size[0] * 3);
+                        break;
+
+            case FORMAT7:
+                dest.image = (unsigned char *)malloc(frame->size[0]*frame->size[1]*3*sizeof(unsigned char));
+
+                err=dc1394_debayer_frames(frame, &dest, DC1394_BAYER_METHOD_NEAREST); 
+                DC1394_ERR_RTN(err,"Could not debayer frames");
+
+                gdk_draw_rgb_image(
+                        widget->window,
+                        widget->style->fg_gc[GTK_STATE_NORMAL],
+                        0, 0, 
+                        frame->size[0], frame->size[1], 
+                        GDK_RGB_DITHER_NONE, 
+                        dest.image, 
+                        frame->size[0] * 3);
+                        break;
+        }
     }
     return TRUE;
 }
@@ -70,19 +116,44 @@ int main(int argc, char *argv[])
     unsigned int width, height;
     GtkWidget *window, *canvas;
 
+    if (argc == 2)
+        show = argv[1][0];
+    else
+        show = 'g';
+
+    switch (show) {
+        case GRAY:
+        case COLOR:
+        case FORMAT7:
+            printf("Selected mode: %c\n", show);
+            break;
+        default:
+            printf("Invalid mode\nUsage:\n\t%s [g|c|7]\n",argv[0]);
+            return 1;
+    }
+    
     d = dc1394_new ();
     if (!d)
-        return 1;
+        return 2;
 
     camera = dc1394_camera_new (d, MY_CAMERA_GUID);
     if (!camera) 
-        return 2;
+        return 3;
 
     gtk_init( &argc, &argv );
 
     // setup capture
-    dc1394_get_image_size_from_video_mode(camera, MY_VIDEO_MODE, &width, &height);
-    err=setup_gray_capture(camera, MY_VIDEO_MODE);
+    switch (show) {
+        case GRAY:
+        case COLOR:
+            dc1394_get_image_size_from_video_mode(camera, DC1394_VIDEO_MODE_640x480_MONO8, &width, &height);
+            err=setup_gray_capture(camera, DC1394_VIDEO_MODE_640x480_MONO8);
+            break;
+        case FORMAT7:
+            dc1394_get_image_size_from_video_mode(camera, DC1394_VIDEO_MODE_FORMAT7_0, &width, &height);
+            err=setup_color_capture(camera, DC1394_VIDEO_MODE_FORMAT7_0, DC1394_COLOR_CODING_RAW8);
+            break;
+    }
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not setup camera");
 
     // have the camera start sending us data
