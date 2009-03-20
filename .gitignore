@@ -2,7 +2,5 @@
 *.pgm
 *.ppm
 *.bin
-camls
-color
-grey
+dc1394-*
 
