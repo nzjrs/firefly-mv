@@ -36,7 +36,9 @@ render_frame_to_widget(dc1394video_frame_t *frame, GtkWidget *widget, show_mode_
                         GDK_RGB_DITHER_NONE, 
                         dest.image, 
                         frame->size[0] * 3);
-                        break;
+
+                free(dest.image);
+                break;
 
             case FORMAT7:
                 dest.image = (unsigned char *)malloc(frame->size[0]*frame->size[1]*3*sizeof(unsigned char));
@@ -52,7 +54,9 @@ render_frame_to_widget(dc1394video_frame_t *frame, GtkWidget *widget, show_mode_
                         GDK_RGB_DITHER_NONE, 
                         dest.image, 
                         frame->size[0] * 3);
-                        break;
+
+                free(dest.image);
+                break;
         }
     }
     return DC1394_SUCCESS;
