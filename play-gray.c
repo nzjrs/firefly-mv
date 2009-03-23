@@ -53,27 +53,22 @@ typedef struct __playback
     uint8_t             *bayer;
     uint64_t            current_frame;
     dc1394video_frame_t header;
+    long                total_frame_size;
 } playback_t;
 
 static int 
 renderframe(int i, playback_t *play) 
 {
-    size_t bytesread;
-    long total_bytes = (play->header).total_bytes;
+    dc1394video_frame_t frame;
 
     if( i < 0 )
         return 0;
 
-    // seek to frame
-    fseek( play->fp, i * total_bytes, SEEK_SET );
-
-    bytesread = fread( play->bayer, total_bytes, 1, play->fp );
-
-    if( bytesread != 1 )
-        return 0;
+    fseek( play->fp, i * play->total_frame_size, SEEK_SET );
+    read_frame( &frame, play->fp );
 
 #if GREY
-    play->buf = play->bayer;
+    play->buf = frame.image;
 #else
     dc1394error_t err;
     // invoke bayer decoding magic
@@ -164,8 +159,8 @@ int main( int argc, char *argv[])
         exit(1);
     }
 
-    // read the first frame format from the head of the file
-    read_frame(&play.header, play.fp);
+    // read the first frame
+    play.total_frame_size = read_frame(&play.header, play.fp);
     width = play.header.size[0];
     height = play.header.size[1];
 

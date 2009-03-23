@@ -94,9 +94,6 @@ int main(int argc, char **argv)
         DC1394_WRN(err,"Could not capture a frame");
 
         write_frame(frame, fp);
-
-        // write it to disk
-        //fwrite(frame->image, frame->total_bytes, 1, fp);
         
         err=dc1394_capture_enqueue(camera,frame);
         DC1394_WRN(err,"releasing buffer");
