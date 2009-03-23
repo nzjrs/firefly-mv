@@ -297,5 +297,19 @@ long read_frame_binary_header(dc1394video_frame_t *frame, FILE *fp)
     return nbytes;
 }
 
+void write_frame(dc1394video_frame_t *frame, FILE *fp)
+{
+    fwrite(frame, sizeof(dc1394video_frame_t), 1, fp);
+    fwrite(frame->image, sizeof(unsigned char), frame->total_bytes, fp);
+}
+
+void read_frame(dc1394video_frame_t *frame, FILE *fp)
+{
+    fread(frame, sizeof(dc1394video_frame_t), 1, fp);
+
+    frame->image = (unsigned char *)malloc(frame->total_bytes*sizeof(unsigned char));
+    fread(frame->image, sizeof(unsigned char), frame->total_bytes, fp);
+}
+
 
 

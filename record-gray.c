@@ -31,7 +31,6 @@ static void usage()
 int main(int argc, char **argv)
 {
     int duration = 0;
-    int first = 1;
     char filename[1024] = { 0 };
     uint32_t width, height;
     dc1394_t * d;
@@ -94,14 +93,10 @@ int main(int argc, char **argv)
         err=dc1394_capture_dequeue(camera, DC1394_CAPTURE_POLICY_WAIT, &frame);
         DC1394_WRN(err,"Could not capture a frame");
 
-        //on the first time around, write header to disk
-        if (first) {
-            first = 0;
-            write_frame_binary_header(frame, fp);
-        }
+        write_frame(frame, fp);
 
         // write it to disk
-        fwrite(frame->image, frame->total_bytes, 1, fp);
+        //fwrite(frame->image, frame->total_bytes, 1, fp);
         
         err=dc1394_capture_enqueue(camera,frame);
         DC1394_WRN(err,"releasing buffer");

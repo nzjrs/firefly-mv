@@ -45,6 +45,10 @@ long write_frame_binary_header(dc1394video_frame_t *frame, FILE *fp);
  */
 long read_frame_binary_header(dc1394video_frame_t *frame, FILE *fp);
 
+void write_frame(dc1394video_frame_t *frame, FILE *fp);
+
+void read_frame(dc1394video_frame_t *frame, FILE *fp);
 
 void print_frame_info(dc1394video_frame_t *frame);
+
 #endif

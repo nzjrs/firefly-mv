@@ -53,7 +53,6 @@ typedef struct __playback
     uint8_t             *bayer;
     uint64_t            current_frame;
     dc1394video_frame_t header;
-    long                offset;
 } playback_t;
 
 static int 
@@ -61,13 +60,12 @@ renderframe(int i, playback_t *play)
 {
     size_t bytesread;
     long total_bytes = (play->header).total_bytes;
-    long offset = play->offset;
 
     if( i < 0 )
         return 0;
 
     // seek to frame
-    fseek( play->fp, (i * total_bytes) + offset, SEEK_SET );
+    fseek( play->fp, i * total_bytes, SEEK_SET );
 
     bytesread = fread( play->bayer, total_bytes, 1, play->fp );
 
@@ -166,8 +164,8 @@ int main( int argc, char *argv[])
         exit(1);
     }
 
-    // read the frame format from the head of the file
-    play.offset = read_frame_binary_header(&(play.header), play.fp);
+    // read the first frame format from the head of the file
+    read_frame(&play.header, play.fp);
     width = play.header.size[0];
     height = play.header.size[1];
 
