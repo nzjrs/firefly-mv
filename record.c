@@ -30,6 +30,8 @@ static void usage()
 
 int main(int argc, char **argv)
 {
+    FILE *fp = NULL;
+    unsigned char use_stdout = 0;
     int duration = 0;
     char filename[1024] = { 0 };
     uint32_t width, height;
@@ -49,8 +51,14 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    strncpy( filename, argv[2], 1024 );
-    FILE *fp = fopen( filename, "wb+");
+    if (argv[2] && argv[2][0] == '-') {
+        use_stdout = 1;
+        fp = stdout;
+    } else {
+        strncpy( filename, argv[2], 1024 );
+        fp = fopen( filename, "wb+");
+    }
+
     if( fp == NULL ) {
         perror("creating output file");
         exit(1);
@@ -63,9 +71,11 @@ int main(int argc, char **argv)
     camera = dc1394_camera_new (d, MY_CAMERA_GUID);
     if (!camera)
         return 1;
-    dc1394_camera_print_info(camera, stdout);
-    
-    printf("=======================\n\n\n");
+
+    if (!use_stdout) {
+        dc1394_camera_print_info(camera, stdout);
+        printf("=======================\n\n\n");
+    }
 
     // setup capture
     dc1394_get_image_size_from_video_mode(camera, MY_VIDEO_MODE, &width, &height);
@@ -102,15 +112,20 @@ int main(int argc, char **argv)
         elapsed = (now.tv_usec / 1000 + now.tv_sec * 1000) - 
             (start.tv_usec / 1000 + start.tv_sec * 1000);
 
-        printf("\r%d frames (%lu ms)", ++numframes, elapsed);
-        fflush(stdout);
+        if (!use_stdout) {
+            printf("\r%d frames (%lu ms)", ++numframes, elapsed);
+            fflush(stdout);
+        }
     }
-    printf("\n");
 
     elapsed = (now.tv_usec / 1000 + now.tv_sec * 1000) - 
         (start.tv_usec / 1000 + start.tv_sec * 1000);
-    printf("time elapsed: %lu ms - %4.1f fps\n", elapsed,
-            (float)numframes/elapsed * 1000);
+
+    if (!use_stdout) {
+        printf("\n");
+        printf("time elapsed: %lu ms - %4.1f fps\n", elapsed,
+                (float)numframes/elapsed * 1000);
+    }
 
 
     // close camera

@@ -26,16 +26,12 @@
  */
 
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <math.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdint.h>
 #include <assert.h>
-#include <inttypes.h>
 
 #include <gtk/gtk.h>
 #include <dc1394/dc1394.h>
@@ -94,7 +90,9 @@ canvas_button_press( GtkWidget *widget, GdkEventButton *event, gpointer data )
         if( play->current_frame > 0 ) play->current_frame--;
         renderframe( play->current_frame, play );
     }
+    
     g_print("frame: %lld\n", play->current_frame);
+
     gtk_widget_queue_draw_area( widget, 0, 0, 
             widget->allocation.width, widget->allocation.height);
     return TRUE;
@@ -150,10 +148,14 @@ int main( int argc, char *argv[])
         exit(1);
     }
 
-    play.filename = (char *) malloc (1024 * sizeof(char));
-    strncpy(play.filename, argv[1], 1024);
+    if (argv[1] && argv[1][0] == '-') {
+        play.fp = stdin;
+    } else {
+        play.filename = (char *) malloc (1024 * sizeof(char));
+        strncpy(play.filename, argv[1], 1024);
+        play.fp = fopen(play.filename, "rb");
+    }
 
-    play.fp = fopen(play.filename, "rb");
     if( play.fp == NULL ) { 
         perror("opening file");
         exit(1);
