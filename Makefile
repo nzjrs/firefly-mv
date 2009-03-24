@@ -25,20 +25,20 @@ CFLAGS += `pkg-config --cflags gtk+-2.0`
 LIBS += `pkg-config --libs gtk+-2.0`
 
 
-BIN := dc1394-camls dc1394-show dc1394-view
+BIN := dc1394-camls dc1394-show dc1394-view dc1394-record dc1394-play
 
 all: $(BIN)
 
 dc1394-camls: camls.o utils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-record-gray: record-gray.o utils.o
+dc1394-record: record.o utils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-play-gray: play-gray.o utils.o
+dc1394-play: play.o utils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(GTKLIBS)
 
-play-gray.o: play-gray.c
+play.o: play.c
 	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
 
 dc1394-show: show.o utils.o gtkutils.o
