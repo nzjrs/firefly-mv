@@ -45,37 +45,27 @@ typedef struct __playback
 {
     char                *filename;
     FILE                *fp;
-    uint8_t             *buf;
-    uint8_t             *bayer;
-    uint64_t            current_frame;
-    dc1394video_frame_t header;
+    uint64_t            frame_number;
+    dc1394video_frame_t frame;
     long                total_frame_size;
 } playback_t;
 
 static int 
 renderframe(int i, playback_t *play) 
 {
-    dc1394video_frame_t frame;
-
     if( i < 0 )
         return 0;
 
-    fseek( play->fp, i * play->total_frame_size, SEEK_SET );
-    read_frame( &frame, play->fp );
-
-#if GREY
-    play->buf = frame.image;
-#else
-    dc1394error_t err;
-    // invoke bayer decoding magic
-    err=dc1394_bayer_decoding_8bit(
-            play->bayer, play->buf,
-            (play->header).size[0], (play->header).size[1], 
-            (play->header).color_filter,
-            DC1394_BAYER_METHOD_NEAREST);
-    DC1394_WRN(err,"Could not decode frame");
-#endif
-    return 1;
+    if (fseek(play->fp, i * play->total_frame_size, SEEK_SET) == 0) {
+        if (play->frame.image) {
+            free(play->frame.image);
+            play->frame.image = NULL;
+        }
+        read_frame( &(play->frame), play->fp );
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 static gboolean 
@@ -84,14 +74,16 @@ canvas_button_press( GtkWidget *widget, GdkEventButton *event, gpointer data )
     playback_t *play = (playback_t *)data;
 
     if( event->button == 1 ) {
-        play->current_frame++;
-        if( ! renderframe( play->current_frame, play ) ) play->current_frame--;
+        play->frame_number++;
+        if( !renderframe(play->frame_number, play) ) 
+            play->frame_number--;
     } else if ( event->button == 3 ) {
-        if( play->current_frame > 0 ) play->current_frame--;
-        renderframe( play->current_frame, play );
+        if( play->frame_number > 0 ) 
+            play->frame_number--;
+        renderframe( play->frame_number, play );
     }
     
-    g_print("frame: %lld\n", play->current_frame);
+    g_print("frame: %lld\n", play->frame_number);
 
     gtk_widget_queue_draw_area( widget, 0, 0, 
             widget->allocation.width, widget->allocation.height);
@@ -103,25 +95,17 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
     playback_t *play = (playback_t *)data;
 
-#if GREY
-    gdk_draw_gray_image(
-            widget->window,
-            widget->style->fg_gc[GTK_STATE_NORMAL],
-            0, 0, 
-            play->header.size[0] /*width*/ , play->header.size[1] /*height*/, 
-            GDK_RGB_DITHER_NONE, 
-            play->buf, 
-            play->header.stride);
-#else
-    gdk_draw_rgb_image( 
-            widget->window, 
-            widget->style->fg_gc[GTK_STATE_NORMAL],
-            0, 0, 
-            widget->allocation.width, widget->allocation.height, 
-            GDK_RGB_DITHER_NONE, 
-            play->buf, 
-            widget->allocation.width * 3 );
-#endif
+    if (play->frame.image) {
+        gdk_draw_gray_image(
+                widget->window,
+                widget->style->fg_gc[GTK_STATE_NORMAL],
+                0, 0, 
+                play->frame.size[0] /*width*/ , play->frame.size[1] /*height*/, 
+                GDK_RGB_DITHER_NONE, 
+                play->frame.image, 
+                play->frame.stride);
+    }
+
 
     return TRUE;
 }
@@ -162,14 +146,9 @@ int main( int argc, char *argv[])
     }
 
     // read the first frame
-    play.total_frame_size = read_frame(&play.header, play.fp);
-    width = play.header.size[0];
-    height = play.header.size[1];
-
-    play.bayer = (uint8_t*) malloc(play.header.total_bytes);
-# if !GREY
-    play.buf = (uint8_t*) malloc(width * height * 3 );
-#endif
+    play.total_frame_size = read_frame(&play.frame, play.fp);
+    width = play.frame.size[0];
+    height = play.frame.size[1];
 
     gtk_init( &argc, &argv );
     gdk_rgb_init();
@@ -222,7 +201,6 @@ int main( int argc, char *argv[])
     gtk_main();
 
     fclose(play.fp);
-    free(play.buf);
 
     return 0;
 }

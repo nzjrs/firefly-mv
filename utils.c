@@ -301,17 +301,14 @@ long write_frame(dc1394video_frame_t *frame, FILE *fp)
 {
     fwrite(frame, sizeof(dc1394video_frame_t), 1, fp);
     fwrite(frame->image, sizeof(unsigned char), frame->total_bytes, fp);
-
     return sizeof(dc1394video_frame_t) + (sizeof(unsigned char) * frame->total_bytes);
 } 
 
 long read_frame(dc1394video_frame_t *frame, FILE *fp)
 {
     fread(frame, sizeof(dc1394video_frame_t), 1, fp);
-
     frame->image = (unsigned char *)malloc(frame->total_bytes*sizeof(unsigned char));
     fread(frame->image, sizeof(unsigned char), frame->total_bytes, fp);
-
     return sizeof(dc1394video_frame_t) + (sizeof(unsigned char) * frame->total_bytes);
 }
 
