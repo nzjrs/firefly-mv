@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <assert.h>
 
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <dc1394/dc1394.h>
 
@@ -116,16 +117,33 @@ int main( int argc, char *argv[])
 
     playback_t play = { 0 };
 
-    if( argc < 2 ) {
-        printf("usage: playback-simple <filename>\n");
+    /* Option parsing */
+    GError *error = NULL;
+    GOptionContext *context;
+    GOptionEntry entries[] =
+    {
+      { "input-filename", 'i', 0, G_OPTION_ARG_FILENAME, &(play.filename), "Input filename", "FILE" },
+      { NULL }
+    };
+
+    context = g_option_context_new("- Firefly MV Camera Playback");
+    g_option_context_add_main_entries (context, entries, NULL);
+
+    if (!g_option_context_parse (context, &argc, &argv, &error)) {
+        printf( "Error: %s\n%s", 
+                error->message, 
+                g_option_context_get_help(context, TRUE, NULL));
         exit(1);
     }
+    if (play.filename == NULL) {
+        printf( "Error: You must supply a filename\n%s", 
+                g_option_context_get_help(context, TRUE, NULL));
+        exit(2);
+    }
 
-    if (argv[1] && argv[1][0] == '-') {
+    if (play.filename[0] == '-') {
         play.fp = stdin;
     } else {
-        play.filename = (char *) malloc (1024 * sizeof(char));
-        strncpy(play.filename, argv[1], 1024);
         play.fp = fopen(play.filename, "rb");
     }
 
