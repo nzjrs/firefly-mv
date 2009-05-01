@@ -1,13 +1,3 @@
-// file: record-simple.c
-// auth: Albert Huang
-// date: October 10, 2005
-//
-// Records video from ladybug2 to disk.
-//
-// requires libdc1394 2.0+
-//
-// gcc -o record-simple record-simple.c -ldc1394_control
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -16,6 +6,7 @@
 #include <inttypes.h>
 #include <sys/time.h>
 
+#include <glib.h>
 #include <dc1394/dc1394.h>
 
 #include "config.h"
@@ -23,67 +14,115 @@
 
 #define MY_VIDEO_MODE DC1394_VIDEO_MODE_640x480_MONO8
 
-static void usage()
-{
-    printf( "usage: record <duration> <filename>\n\tspecify duration in seconds\n");
-}
 
 int main(int argc, char **argv)
 {
     FILE *fp = NULL;
     unsigned char use_stdout = 0;
-    int duration = 0;
-    char filename[1024] = { 0 };
     uint32_t width, height;
     dc1394_t * d;
     dc1394camera_t *camera;
     dc1394error_t err;
     dc1394video_frame_t *frame;
 
-    if( argc < 3 ) {
-        usage();
+    /* Options */
+    show_mode_t show;
+    char *format;
+    char *filename;
+    double framerate;
+    int exposure, brightness, duration;
+
+    /* Option parsing */
+    GError *error = NULL;
+    GOptionContext *context;
+    GOptionEntry entries[] =
+    {
+      { "format", 'f', 0, G_OPTION_ARG_STRING, &format, "Format of image", "g,c,7" },
+      { "output-filename", 'o', 0, G_OPTION_ARG_FILENAME, &filename, "Output filename", "FILE" },
+      { "duration", 'd', 0, G_OPTION_ARG_INT, &duration, "Seconds to record", NULL },
+      GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(&framerate, &exposure, &brightness),
+      { NULL }
+    };
+
+    context = g_option_context_new("- Firefly MV Camera Recorder");
+    g_option_context_add_main_entries (context, entries, NULL);
+
+    /* Defaults */
+    format = NULL;
+    filename = NULL;
+    show = GRAY;
+    framerate = 30.0;
+    exposure = -1;
+    brightness = -1;
+    duration = 0;
+
+    if (!g_option_context_parse (context, &argc, &argv, &error)) {
+        printf( "Error: %s\n%s", 
+                error->message, 
+                g_option_context_get_help(context, TRUE, NULL));
         exit(1);
     }
-
-    duration = atoi(argv[1]);
-    if( duration <= 0 ) {
-        usage();
-        exit(1);
+    if (filename == NULL) {
+        printf( "Error: You must supply a filename\n%s", 
+                g_option_context_get_help(context, TRUE, NULL));
+        exit(2);
+    }
+    if (duration <= 0) {
+        printf( "Error: You must supply a duration\n%s", 
+                g_option_context_get_help(context, TRUE, NULL));
+        exit(3);
     }
 
-    if (argv[2] && argv[2][0] == '-') {
+    if (format && format[0])
+        show = format[0];
+
+    if (filename[0] == '-') {
         use_stdout = 1;
         fp = stdout;
     } else {
-        strncpy( filename, argv[2], 1024 );
         fp = fopen( filename, "wb+");
     }
 
     if( fp == NULL ) {
         perror("creating output file");
-        exit(1);
+        exit(4);
     }
 
     d = dc1394_new ();
     if (!d)
-        return 1;
+        exit(5);
 
     camera = dc1394_camera_new (d, MY_CAMERA_GUID);
     if (!camera)
-        return 1;
+        exit(6);
 
     if (!use_stdout) {
-        dc1394_camera_print_info(camera, stdout);
-        printf("=======================\n\n\n");
+        printf( "Recording Details:\n"
+                "  Duration   = %d\n"
+                "  Format     = %c\n"
+                "  Framerate  = %f\n"
+                "  Exposure   = %d\n"
+                "  Brightness = %d\n\n"
+                "Recording:\n",
+                duration,show,framerate,exposure,brightness);
     }
 
     // setup capture
-    dc1394_get_image_size_from_video_mode(camera, MY_VIDEO_MODE, &width, &height);
-    err=setup_gray_capture(camera, MY_VIDEO_MODE);
+    switch (show) {
+        case GRAY:
+        case COLOR:
+            dc1394_get_image_size_from_video_mode(camera, DC1394_VIDEO_MODE_640x480_MONO8, &width, &height);
+            err=setup_gray_capture(camera, DC1394_VIDEO_MODE_640x480_MONO8);
+            break;
+        case FORMAT7:
+            dc1394_get_image_size_from_video_mode(camera, DC1394_VIDEO_MODE_FORMAT7_0, &width, &height);
+            err=setup_color_capture(camera, DC1394_VIDEO_MODE_FORMAT7_0, DC1394_COLOR_CODING_RAW8);
+            break;
+    }
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not setup camera");
 
-    err=dc1394_video_set_framerate(camera, DC1394_FRAMERATE_30);
-    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"setting framerate");
+    err=setup_from_command_line(camera, framerate, exposure, brightness);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not set camera from command line arguments");
 
     // have the camera start sending us data
     err=dc1394_video_set_transmission(camera, DC1394_ON);
