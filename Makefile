@@ -35,7 +35,7 @@ dc1394-camls: camls.o utils.o
 dc1394-record: record.o utils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-dc1394-play: play.o utils.o
+dc1394-play: play.o utils.o gtkutils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) $(GTKLIBS)
 
 play.o: play.c

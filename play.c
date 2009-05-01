@@ -38,8 +38,7 @@
 
 #include "config.h"
 #include "utils.h"
-
-#define GREY 1
+#include "gtkutils.h"
 
 typedef struct __playback
 {
@@ -48,6 +47,7 @@ typedef struct __playback
     uint64_t            frame_number;
     dc1394video_frame_t frame;
     long                total_frame_size;
+    show_mode_t         show;
 } playback_t;
 
 static int 
@@ -95,17 +95,7 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
     playback_t *play = (playback_t *)data;
 
-    if (play->frame.image) {
-        gdk_draw_gray_image(
-                widget->window,
-                widget->style->fg_gc[GTK_STATE_NORMAL],
-                0, 0, 
-                play->frame.size[0] /*width*/ , play->frame.size[1] /*height*/, 
-                GDK_RGB_DITHER_NONE, 
-                play->frame.image, 
-                play->frame.stride);
-    }
-
+    render_frame_to_widget(&(play->frame), widget, play->show);
 
     return TRUE;
 }
@@ -123,7 +113,6 @@ int main( int argc, char *argv[])
     GtkWidget *button;
     GtkWidget *vbox;
     GtkWidget *canvas;
-    uint32_t width, height;
 
     playback_t play = { 0 };
 
@@ -147,8 +136,16 @@ int main( int argc, char *argv[])
 
     // read the first frame
     play.total_frame_size = read_frame(&play.frame, play.fp);
-    width = play.frame.size[0];
-    height = play.frame.size[1];
+    if (play.frame.color_coding == DC1394_COLOR_CODING_MONO8)
+        play.show = GRAY;
+    else if (play.frame.color_coding == DC1394_COLOR_CODING_RGB8)
+        play.show = COLOR;
+    else if (play.frame.color_coding == DC1394_COLOR_CODING_RAW8)
+        play.show = FORMAT7;
+    else {
+        perror("invalid color coding");
+        exit(1);
+    }
 
     gtk_init( &argc, &argv );
     gdk_rgb_init();
@@ -169,7 +166,7 @@ int main( int argc, char *argv[])
 
     // canvas (DrawingArea)
     canvas = gtk_drawing_area_new();
-    gtk_widget_set_size_request(canvas, width, height);
+    gtk_widget_set_size_request(canvas, play.frame.size[0], play.frame.size[1]);
     g_signal_connect (G_OBJECT (canvas), "expose_event",  
             G_CALLBACK (expose_event_callback), &play);
 
