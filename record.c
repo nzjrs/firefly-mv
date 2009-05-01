@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     char *format;
     char *filename;
     double framerate;
-    int exposure, brightness, duration;
+    int exposure, brightness, duration, i;
 
     /* Option parsing */
     GError *error = NULL;
@@ -127,6 +127,14 @@ int main(int argc, char **argv)
     // have the camera start sending us data
     err=dc1394_video_set_transmission(camera, DC1394_ON);
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not start camera iso transmission");
+
+    // throw away some frames to prevent corruption from some modes taking a 
+    // few frames to change.... dunno why
+    i = 3;
+    while (i--) {
+        dc1394_capture_dequeue(camera, DC1394_CAPTURE_POLICY_WAIT, &frame);
+        dc1394_capture_enqueue(camera,frame);
+    }
 
     // compute actual framerate
     struct timeval start, now;
