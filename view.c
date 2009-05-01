@@ -82,12 +82,38 @@ int main(int argc, char *argv[])
     dc1394error_t err;
     unsigned int width, height;
     GtkWidget *window, *canvas;
+    char *format = NULL;
+    double framerate;
+    int exposure, brightness;
     view_t view;
 
-    if (argc == 2)
-        view.show = argv[1][0];
-    else
-        view.show = 'g';
+    /* Option parsing */
+    GError *error = NULL;
+    GOptionContext *context;
+    GOptionEntry entries[] =
+    {
+      { "format", 'f', 0, G_OPTION_ARG_STRING, &format, "Format of image", "g,c,7" },
+      GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(&framerate, &exposure, &brightness),
+      { NULL }
+    };
+
+    context = g_option_context_new("- Firefly MV Camera Viewer");
+    g_option_context_add_main_entries (context, entries, NULL);
+
+    /* Defaults */
+    view.show = GRAY;
+    framerate = 30.0;
+    exposure = -1;
+    brightness = -1;
+
+    if (!g_option_context_parse (context, &argc, &argv, &error)) {
+        printf( "Error: %s\n%s", 
+                error->message, 
+                g_option_context_get_help(context, TRUE, NULL));
+        exit(1);
+    }
+    if (format && format[0])
+        view.show = format[0];
 
     switch (view.show) {
         case GRAY:
@@ -96,17 +122,17 @@ int main(int argc, char *argv[])
             printf("Selected mode: %c\n", view.show);
             break;
         default:
-            printf("Invalid mode\nUsage:\n\t%s [g|c|7]\n",argv[0]);
-            return 1;
+            printf("Invalid Mode\n%s", g_option_context_get_help(context, TRUE, NULL));
+            exit(1);
     }
     
     d = dc1394_new ();
     if (!d)
-        return 2;
+        exit(2);
 
     view.camera = dc1394_camera_new (d, MY_CAMERA_GUID);
     if (!view.camera) 
-        return 3;
+        exit(3);
 
     gtk_init( &argc, &argv );
 
@@ -124,8 +150,9 @@ int main(int argc, char *argv[])
     }
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(view.camera),"Could not setup camera");
 
-    err=dc1394_video_set_framerate(view.camera, DC1394_FRAMERATE_30);
-    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(view.camera),"Could not set framerate");
+    err=setup_from_command_line(view.camera, framerate, exposure, brightness);
+    DC1394_ERR_CLN_RTN(err,cleanup_and_exit(view.camera),"Could not set camera from command line arguments");
+
 
     // have the camera start sending us data
     err=dc1394_video_set_transmission(view.camera, DC1394_ON);

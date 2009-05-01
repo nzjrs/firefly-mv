@@ -1,7 +1,12 @@
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "utils.h"
+
+#ifndef CLAMP
+#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+#endif
 
 void cleanup_and_exit(dc1394camera_t *camera)
 {
@@ -66,6 +71,125 @@ dc1394error_t setup_gray_capture(
     DC1394_ERR_RTN(err,"Could not setup camera - make sure that the video mode is supported by your camera");
 
     return DC1394_SUCCESS;
+}
+
+dc1394error_t setup_framerate(
+                dc1394camera_t *camera, 
+                float ff)
+{
+    dc1394error_t err;
+    dc1394framerate_t f;
+
+    if (ff == 1.875)
+        f = DC1394_FRAMERATE_1_875;
+    else if (ff == 3.75)
+        f = DC1394_FRAMERATE_3_75;
+    else if (ff == 7.5)
+        f = DC1394_FRAMERATE_7_5;
+    else if (ff == 15.0)
+        f = DC1394_FRAMERATE_15;
+    else if (ff == 30.0)
+        f = DC1394_FRAMERATE_30;
+    else if (ff == 60.0)
+        f = DC1394_FRAMERATE_60;
+    else if (ff == 120.0)
+        f = DC1394_FRAMERATE_120;
+    else if (ff == 240.0)
+        f = DC1394_FRAMERATE_240;
+    else
+        return DC1394_INVALID_FRAMERATE;
+
+   err = dc1394_video_set_framerate(camera, f);
+   DC1394_ERR_RTN(err,"Could not set framerate");
+        
+   return DC1394_SUCCESS;
+}
+
+dc1394error_t setup_exposure(
+                dc1394camera_t *camera, 
+                uint8_t manual,
+                uint32_t value)
+{
+    dc1394error_t err;
+
+    /* turn on the feature - dont know what this means?? */
+    err = dc1394_feature_set_power(camera, DC1394_FEATURE_EXPOSURE, DC1394_ON);
+    DC1394_ERR_RTN(err,"Could not turn on the feature");
+
+    if (manual) {
+        uint32_t min, max;
+
+        /* turn off auto exposure */
+        err = dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE, DC1394_FEATURE_MODE_MANUAL);
+        DC1394_ERR_RTN(err,"Could not turn off Auto-exposure");
+
+        /* get bounds and set */
+        err = dc1394_feature_get_boundaries(camera, DC1394_FEATURE_EXPOSURE, &min, &max);
+        DC1394_ERR_RTN(err,"Could not get bounds");
+
+        err = dc1394_feature_set_value(camera, DC1394_FEATURE_EXPOSURE, CLAMP(value, min, max));
+        DC1394_ERR_RTN(err,"Could not set value");
+    } else {
+        err = dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE, DC1394_FEATURE_MODE_AUTO);
+        DC1394_ERR_RTN(err,"Could not turn off Auto-exposure");
+    }
+
+   return DC1394_SUCCESS;
+}
+
+dc1394error_t setup_brightness(
+                dc1394camera_t *camera, 
+                uint8_t manual,
+                uint32_t value)
+{
+    dc1394error_t err;
+
+    /* turn on the feature - dont know what this means?? */
+    err = dc1394_feature_set_power(camera, DC1394_FEATURE_BRIGHTNESS, DC1394_ON);
+    DC1394_ERR_RTN(err,"Could not turn on the feature");
+
+    if (manual) {
+        uint32_t min, max;
+
+        /* turn off auto exposure */
+        err = dc1394_feature_set_mode(camera, DC1394_FEATURE_BRIGHTNESS, DC1394_FEATURE_MODE_MANUAL);
+        DC1394_ERR_RTN(err,"Could not turn off Auto-brightness");
+
+        /* get bounds and set */
+        err = dc1394_feature_get_boundaries(camera, DC1394_FEATURE_BRIGHTNESS, &min, &max);
+        DC1394_ERR_RTN(err,"Could not get bounds");
+
+        err = dc1394_feature_set_value(camera, DC1394_FEATURE_BRIGHTNESS, CLAMP(value, min, max));
+        DC1394_ERR_RTN(err,"Could not set value");
+    } else {
+        err = dc1394_feature_set_mode(camera, DC1394_FEATURE_BRIGHTNESS, DC1394_FEATURE_MODE_AUTO);
+        DC1394_ERR_RTN(err,"Could not turn off Auto-brightness");
+    }
+
+   return DC1394_SUCCESS;
+}
+
+dc1394error_t setup_from_command_line(
+                dc1394camera_t *camera, 
+                float framerate, 
+                int exposure,
+                int brightness)
+{
+    dc1394error_t err;
+    uint8_t eman, bman;
+
+    eman = (exposure >= 0 ? 1 : 0);
+    bman = (brightness >= 0 ? 1 : 0);
+
+    err = setup_framerate(camera, framerate);
+    if (err == DC1394_SUCCESS) {
+        err = setup_exposure(camera, eman, exposure);
+        if (err == DC1394_SUCCESS) {
+            err = setup_brightness(camera, bman, brightness);
+            return err;
+        }
+    }
+    return err;
 }
 
 #define print_case(A) case A: printf(#A ""); break;
