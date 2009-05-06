@@ -3,4 +3,6 @@
 *.ppm
 *.bin
 dc1394-*
+pprz-play
+pprz-record
 

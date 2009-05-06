@@ -1,0 +1,43 @@
+#####################################################################
+# Copyright (c) 2005 Point Grey Research Inc.
+#
+# This Makefile is free software; Point Grey Research Inc. 
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+#
+#####################################################################
+
+# compilation flags
+CFLAGS += -I. 
+CFLAGS += -Wall -g
+CFLAGS += -DLINUX
+CFLAGS += `pkg-config --cflags libdc1394-2`
+
+LDFLAGS	+= -L. 
+LIBS += `pkg-config --libs libdc1394-2`
+
+CFLAGS += `pkg-config --cflags gtk+-2.0`
+LIBS += `pkg-config --libs gtk+-2.0`
+
+all: pprz-play pprz-record
+
+pprz-record: pprz-record.o utils.o gtkutils.o serial.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+pprz-play: pprz-play.o utils.o gtkutils.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+gtkutils.o: gtkutils.c
+	$(CC) -c $(CFLAGS) $(GTKCFLAGS) -o $@ $^
+
+%.o:%.c
+	$(CC) -c $(CFLAGS) $*.c
+
+clean:
+	rm -f *~ *.o $(BIN)
+
