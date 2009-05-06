@@ -12,7 +12,6 @@
 
 #include "config.h"
 #include "utils.h"
-#include "gtkutils.h"
 #include "serial.h"
 #include "ppzutils.h"
 
@@ -288,7 +287,6 @@ int main(int argc, char **argv)
         // get a single frame
         err=dc1394_capture_dequeue(camera, DC1394_CAPTURE_POLICY_WAIT, &frame);
         DC1394_WRN(err,"Could not capture a frame");
-        GdkPixbuf *pb;
 
         pthread_mutex_lock( &mutex );
         memcpy(data, parser.data, AHRS_PAYLOAD_LEN);      

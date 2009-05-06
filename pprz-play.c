@@ -87,7 +87,7 @@ canvas_button_press( GtkWidget *widget, GdkEventButton *event, gpointer data )
         renderframe( play->frame_number, play );
     }
     
-    g_print("frame: %lld %f\n", play->frame_number);
+    g_print("frame: %lld\n", play->frame_number);
 
     gtk_widget_queue_draw_area( widget, 0, 0, 
             widget->allocation.width, widget->allocation.height);

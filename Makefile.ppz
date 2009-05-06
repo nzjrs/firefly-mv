@@ -26,7 +26,7 @@ LIBS += `pkg-config --libs gtk+-2.0`
 
 all: pprz-play pprz-record
 
-pprz-record: pprz-record.o utils.o gtkutils.o serial.o
+pprz-record: pprz-record.o utils.o serial.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 pprz-play: pprz-play.o utils.o gtkutils.o
