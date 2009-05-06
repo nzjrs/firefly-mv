@@ -12,9 +12,6 @@
 #include "config.h"
 #include "utils.h"
 
-#define MY_VIDEO_MODE DC1394_VIDEO_MODE_640x480_MONO8
-
-
 int main(int argc, char **argv)
 {
     FILE *fp = NULL;

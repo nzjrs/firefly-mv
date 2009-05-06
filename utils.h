@@ -88,6 +88,10 @@ long write_frame(dc1394video_frame_t *frame, FILE *fp);
 
 long read_frame(dc1394video_frame_t *frame, FILE *fp);
 
+long write_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra, uint8_t nextra);
+
+long read_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra, uint8_t nextra);
+
 void print_frame_info(dc1394video_frame_t *frame);
 
 #endif

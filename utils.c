@@ -436,5 +436,28 @@ long read_frame(dc1394video_frame_t *frame, FILE *fp)
     return sizeof(dc1394video_frame_t) + (sizeof(unsigned char) * frame->total_bytes);
 }
 
+long write_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra, uint8_t nextra)
+{
+    fwrite(frame, sizeof(dc1394video_frame_t), 1, fp);
+    fwrite(frame->image, sizeof(unsigned char), frame->total_bytes, fp);
+    if (extra && nextra)
+        fwrite(extra, sizeof(uint8_t), nextra, fp);
+    else
+        nextra = 0;
+    return sizeof(dc1394video_frame_t) + (sizeof(unsigned char) * frame->total_bytes) + nextra;
+} 
+
+long read_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra, uint8_t nextra)
+{
+    fread(frame, sizeof(dc1394video_frame_t), 1, fp);
+    frame->image = (unsigned char *)malloc(frame->total_bytes*sizeof(unsigned char));
+    fread(frame->image, sizeof(unsigned char), frame->total_bytes, fp);
+    if (extra && nextra)
+        fread(extra, sizeof(uint8_t), nextra, fp);
+    else
+        nextra = 0;
+    return sizeof(dc1394video_frame_t) + (sizeof(unsigned char) * frame->total_bytes) + nextra;
+}
+
 
 
