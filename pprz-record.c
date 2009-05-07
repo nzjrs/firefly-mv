@@ -125,18 +125,17 @@ void *parse_pppz_thread(void *ptr)
     {
         ppz_parse_serial (parser);
         if (parser->pprz_msg_received) {
-            //int32_t theta;
-
             parser->num++;
             parser->pprz_msg_received = FALSE;
-            //theta = DL_BOOZ2_AHRS_EULER_body_theta(parser->payload);
 
             if ((uint8_t)parser->payload[1] == 0x9c && parser->pprz_payload_len == AHRS_PAYLOAD_LEN) {
-
-                //printf("%2.2f\n",(float)(theta * 0.0139882));
-                   pthread_mutex_lock( &mutex );
-                    memcpy(parser->data, parser->payload, parser->pprz_payload_len);
-               pthread_mutex_unlock( &mutex );
+                printf("R: %2.2f P: %2.2f Y: %2.2f\n",
+                        (float)(DL_BOOZ2_AHRS_EULER_body_phi(parser->payload) * 0.0139882),
+                        (float)(DL_BOOZ2_AHRS_EULER_body_theta(parser->payload) * 0.0139882),
+                        (float)(DL_BOOZ2_AHRS_EULER_body_psi(parser->payload) * 0.0139882));
+                pthread_mutex_lock( &mutex );
+                memcpy(parser->data, parser->payload, parser->pprz_payload_len);
+                pthread_mutex_unlock( &mutex );
             } else {
                 parser->ignored++;
             }
