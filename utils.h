@@ -12,38 +12,39 @@ typedef enum {
 } show_mode_t;
 
 /**
- * Cleanup function
+ * @brief Cleanup function
  */
 void cleanup_and_exit(dc1394camera_t *camera);
 
 /**
- * Sets the camera to record color frames at the given video mode and color coding
+ * @brief Sets the camera to record color frames at the given video mode and color coding
  */
 dc1394error_t setup_color_capture(
-                dc1394camera_t *camera, 
-                dc1394video_mode_t video_mode, 
+                dc1394camera_t *camera,
+                dc1394video_mode_t video_mode,
                 dc1394color_coding_t color_coding);
 
 /**
- * Sets the camera to record gray frames at the given video mode
+ * @brief Sets the camera to record gray frames at the given video mode
  */
 dc1394error_t setup_gray_capture(
-                dc1394camera_t *camera, 
+                dc1394camera_t *camera,
                 dc1394video_mode_t video_mode);
 
 /**
- * Sets the camera framerate to the given floating point value, if supported
+ * @brief Sets the camera framerate to the given floating point value, if supported
  */
 dc1394error_t setup_framerate(
-                dc1394camera_t *camera, 
+                dc1394camera_t *camera,
                 float framerate);
 
 /**
- * If manual is TRUE then sets the camera exposure to value. If manual
- * is FALSE then puts the camera into automatic exposure mode.
+ * @brief Set the exposure
+ *
+ * @param manual If manual is TRUE then sets the camera exposure to value. If manual is FALSE then puts the camera into automatic exposure mode.
  */
 dc1394error_t setup_exposure(
-                dc1394camera_t *camera, 
+                dc1394camera_t *camera,
                 uint8_t manual,
                 uint32_t value);
 
@@ -52,7 +53,7 @@ dc1394error_t setup_exposure(
  * is FALSE then puts the camera into automatic brightness mode.
  */
 dc1394error_t setup_brightness(
-                dc1394camera_t *camera, 
+                dc1394camera_t *camera,
                 uint8_t manual,
                 uint32_t value);
 
@@ -64,8 +65,8 @@ dc1394error_t setup_brightness(
       { "exposure", 'e', 0, G_OPTION_ARG_INT, _exposure, "Exposure (<0 = Auto)", "13" },        \
       { "brightness", 'b', 0, G_OPTION_ARG_INT, _brightness, "Brightness (<0 = Auto)", "34" }
 dc1394error_t setup_from_command_line(
-                dc1394camera_t *camera, 
-                float framerate, 
+                dc1394camera_t *camera,
+                float framerate,
                 int exposure,
                 int brightness);
 
