@@ -24,12 +24,15 @@ LIBS += `pkg-config --libs libdc1394-2`
 CFLAGS += `pkg-config --cflags gtk+-2.0`
 LIBS += `pkg-config --libs gtk+-2.0`
 
-all: pprz-play pprz-record
+all: pprz-play pprz-record pprz-to-image-files
 
 pprz-record: pprz-record.o utils.o serial.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 pprz-play: pprz-play.o utils.o gtkutils.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+pprz-to-image-files: pprz-to-image-files.o utils.o gtkutils.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 gtkutils.o: gtkutils.c

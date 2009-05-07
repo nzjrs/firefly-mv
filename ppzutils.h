@@ -14,4 +14,7 @@
 #define AHRS_MSG_ID 156
 #define AHRS_PAYLOAD_LEN 26
 
+#define CSV_HEADER "imu_phi, imu_theta, imu_psi, body_phi, body_theta, body_psi\n"
+#define CSV_FORMAT "%2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f\n"
+
 #endif /* PPZ_UTILS_H */

@@ -118,6 +118,9 @@ void *parse_pppz_thread(void *ptr)
     parser->pprz_ovrn = 0;
     parser->pprz_error = 0;
 
+    if (parser->serial == -1)
+        return 0;
+
     while(parser->finished == FALSE)
     {
         ppz_parse_serial (parser);
@@ -164,6 +167,7 @@ int main(int argc, char **argv)
     char *filename;
     double framerate;
     int exposure, brightness, duration, i;
+    long total_frame_size;
 
     char data[AHRS_PAYLOAD_LEN];
 
@@ -292,7 +296,7 @@ int main(int argc, char **argv)
         memcpy(data, parser.data, AHRS_PAYLOAD_LEN);      
         pthread_mutex_unlock( &mutex );
 
-        write_frame_with_extras(frame, fp, data, AHRS_PAYLOAD_LEN);
+        total_frame_size = write_frame_with_extras(frame, fp, data, AHRS_PAYLOAD_LEN);
 //        printf("%2.2f\n",(float)((DL_BOOZ2_AHRS_EULER_body_theta(data)) * 0.0139882));
         
         err=dc1394_capture_enqueue(camera,frame);
@@ -315,6 +319,7 @@ int main(int argc, char **argv)
         printf("\nFinished:\n");
         printf("\ttime elapsed: %lu ms - %4.1f fps\n", elapsed, (float)numframes/elapsed * 1000);
         printf("\tpprz: %d readings - %4.1f ps (%d errors, %d ignored)\n", parser.num, (float)parser.num/elapsed * 1000, parser.pprz_error, parser.ignored);
+        printf("\tframe size: %ld\n", total_frame_size);
     }
 
 
