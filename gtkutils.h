@@ -10,6 +10,6 @@ dc1394error_t
 render_frame_to_widget(dc1394video_frame_t *frame, GtkWidget *widget, show_mode_t show);
 
 dc1394error_t
-render_frame_to_image_file(dc1394video_frame_t *frame, GdkPixbuf **pbdest, show_mode_t show);
+render_frame_to_pixbuf(dc1394video_frame_t *frame, GdkPixbuf **pbdest, show_mode_t show);
 
 #endif
