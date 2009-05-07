@@ -63,14 +63,11 @@ render_frame_to_widget(dc1394video_frame_t *frame, GtkWidget *widget, show_mode_
 }
 
 dc1394error_t
-render_frame_to_image_file(dc1394video_frame_t *frame, GdkPixbuf **pbdest, show_mode_t show)
+render_frame_to_pixbuf(dc1394video_frame_t *frame, GdkPixbuf **pbdest, show_mode_t show)
 {
-    if (frame && frame->image) {
-        GError *gerr = NULL;
+    if (frame && frame->image && pbdest) {
         dc1394error_t err;
         dc1394video_frame_t dest;
-        GdkPixbuf *pb;
-        char *fname;
 
         dest.image = (unsigned char *)malloc(frame->size[0]*frame->size[1]*3*sizeof(unsigned char));
         dest.color_coding = DC1394_COLOR_CODING_RGB8;
@@ -97,19 +94,6 @@ render_frame_to_image_file(dc1394video_frame_t *frame, GdkPixbuf **pbdest, show_
                     dest.size[0] * 3,   /* rowstride */
                     NULL,
                     NULL);
-
-//        fname = g_strdup_printf("%s/%u.jpg", dir, 3);
-
-//        gdk_pixbuf_save (pb, "test.jpeg", "jpeg", &gerr, NULL);
-
-//        g_object_unref(pb);
-//        free(dest.image);
-//                                                         const char *filename,
-//                                                         const char *type,
-//                                                         GError **error,
-//                                                         ...);
-
-
     }
     return DC1394_SUCCESS;
 }
