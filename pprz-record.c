@@ -128,11 +128,13 @@ void *parse_pppz_thread(void *ptr)
             parser->num++;
             parser->pprz_msg_received = FALSE;
 
-            if ((uint8_t)parser->payload[1] == 0x9c && parser->pprz_payload_len == AHRS_PAYLOAD_LEN) {
-                printf("R: %2.2f P: %2.2f Y: %2.2f\n",
-                        (float)(DL_BOOZ2_AHRS_EULER_body_phi(parser->payload) * 0.0139882),
-                        (float)(DL_BOOZ2_AHRS_EULER_body_theta(parser->payload) * 0.0139882),
-                        (float)(DL_BOOZ2_AHRS_EULER_body_psi(parser->payload) * 0.0139882));
+            if ((uint8_t)parser->payload[1] == AHRS_MSG_ID && parser->pprz_payload_len == AHRS_PAYLOAD_LEN) {
+                printf("R: %2.2f P: %2.2f Y: %2.2f Az: %2.2f Gq: %2.2f\n",
+                        (float)(DL_BOOZ2_EMAV_STATE_body_phi(parser->payload) * 0.0139882),
+                        (float)(DL_BOOZ2_EMAV_STATE_body_theta(parser->payload) * 0.0139882),
+                        (float)(DL_BOOZ2_EMAV_STATE_body_psi(parser->payload) * 0.0139882),
+                        (float)(DL_BOOZ2_EMAV_STATE_az(parser->payload) * 0.0009766),
+                        (float)(DL_BOOZ2_EMAV_STATE_gr(parser->payload) * 0.0139882));
                 pthread_mutex_lock( &mutex );
                 memcpy(parser->data, parser->payload, parser->pprz_payload_len);
                 pthread_mutex_unlock( &mutex );
@@ -296,7 +298,7 @@ int main(int argc, char **argv)
         pthread_mutex_unlock( &mutex );
 
         total_frame_size = write_frame_with_extras(frame, fp, data, AHRS_PAYLOAD_LEN);
-//        printf("%2.2f\n",(float)((DL_BOOZ2_AHRS_EULER_body_theta(data)) * 0.0139882));
+//        printf("%2.2f\n",(float)((DL_BOOZ2_EMAV_STATE_body_theta(data)) * 0.0139882));
         
         err=dc1394_capture_enqueue(camera,frame);
         DC1394_WRN(err,"releasing buffer");

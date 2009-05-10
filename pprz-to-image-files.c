@@ -141,12 +141,15 @@ int main( int argc, char *argv[])
 
         csvline = g_strdup_printf("%d, " CSV_FORMAT,
                             i,
-                            (float)((DL_BOOZ2_AHRS_EULER_imu_phi(data)) * 0.0139882),
-                            (float)((DL_BOOZ2_AHRS_EULER_imu_theta(data)) * 0.0139882),
-                            (float)((DL_BOOZ2_AHRS_EULER_imu_psi(data)) * 0.0139882),
-                            (float)((DL_BOOZ2_AHRS_EULER_body_phi(data)) * 0.0139882),
-                            (float)((DL_BOOZ2_AHRS_EULER_body_theta(data)) * 0.0139882),
-                            (float)((DL_BOOZ2_AHRS_EULER_body_psi(data)) * 0.0139882));
+                            (float)(DL_BOOZ2_EMAV_STATE_ax(data) * 0.0009766),
+                            (float)(DL_BOOZ2_EMAV_STATE_ay(data) * 0.0009766),
+                            (float)(DL_BOOZ2_EMAV_STATE_az(data) * 0.0009766),
+                            (float)(DL_BOOZ2_EMAV_STATE_gp(data) * 0.0139882),
+                            (float)(DL_BOOZ2_EMAV_STATE_gq(data) * 0.0139882),
+                            (float)(DL_BOOZ2_EMAV_STATE_gr(data) * 0.0139882),
+                            (float)(DL_BOOZ2_EMAV_STATE_body_phi(data) * 0.0139882),
+                            (float)(DL_BOOZ2_EMAV_STATE_body_theta(data) * 0.0139882),
+                            (float)(DL_BOOZ2_EMAV_STATE_body_psi(data) * 0.0139882));
         fwrite(csvline, sizeof(char), strlen(csvline), csv);
         free(csvline);
 

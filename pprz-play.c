@@ -42,6 +42,8 @@
 #include "gtkutils.h"
 #include "ppzutils.h"
 
+#define DEBUGGING 0
+
 typedef struct __playback
 {
     char                *filename;
@@ -65,7 +67,14 @@ renderframe(int i, playback_t *play)
             play->frame.image = NULL;
         }
         read_frame_with_extras( &(play->frame), play->fp , play->data, AHRS_PAYLOAD_LEN);
-        //printf("%2.2f\n", (float)((DL_BOOZ2_AHRS_EULER_body_theta(play->data)) * 0.0139882));
+#if DEBUGGING
+        printf("R: %2.2f P: %2.2f Y: %2.2f Az: %2.2f Gq: %2.2f\n",
+                (float)(DL_BOOZ2_EMAV_STATE_body_phi(play->data) * 0.0139882),
+                (float)(DL_BOOZ2_EMAV_STATE_body_theta(play->data) * 0.0139882),
+                (float)(DL_BOOZ2_EMAV_STATE_body_psi(play->data) * 0.0139882),
+                (float)(DL_BOOZ2_EMAV_STATE_az(play->data) * 0.0009766),
+                (float)(DL_BOOZ2_EMAV_STATE_gr(play->data) * 0.0139882));
+#endif
         return 1;
     } else {
         return 0;
