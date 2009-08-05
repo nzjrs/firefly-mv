@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-#include "config.h"
+#include "camera.h"
 
 static void cleanup_and_exit(dc1394camera_t *camera)
 {
