@@ -37,7 +37,7 @@
 #include <gtk/gtk.h>
 #include <dc1394/dc1394.h>
 
-#include "config.h"
+#include "camera.h"
 #include "utils.h"
 #include "gtkutils.h"
 #include "ppzutils.h"

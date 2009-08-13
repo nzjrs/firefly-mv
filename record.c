@@ -9,7 +9,7 @@
 #include <glib.h>
 #include <dc1394/dc1394.h>
 
-#include "config.h"
+#include "camera.h"
 #include "utils.h"
 
 int main(int argc, char **argv)
