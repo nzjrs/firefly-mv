@@ -15,9 +15,6 @@
 #include "serial.h"
 #include "ppzutils.h"
 
-#define SERIAL_PORT "/dev/ttyUSB1"
-#define SERIAL_BAUD 115200
-
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argc, char **argv)
@@ -41,6 +38,8 @@ int main(int argc, char **argv)
     double framerate;
     int exposure, brightness, duration, i;
     long total_frame_size;
+    char *serial_port;
+    int serial_baud;
 
     char data[MESSAGE_LENGTH_EMAV_STATE];
 
@@ -53,13 +52,16 @@ int main(int argc, char **argv)
       { "output-filename", 'o', 0, G_OPTION_ARG_FILENAME, &filename, "Output filename", "FILE" },
       { "duration", 'd', 0, G_OPTION_ARG_INT, &duration, "Seconds to record", NULL },
       GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(&framerate, &exposure, &brightness),
+      GOPTION_ENTRY_SERIAL_SETUP_ARGUMENTS(&serial_port, &serial_baud),
       { NULL }
     };
 
-    context = g_option_context_new("- Firefly MV Camera Recorder");
+    context = g_option_context_new("- Record image frames and telemetry data");
     g_option_context_add_main_entries (context, entries, NULL);
 
     /* Defaults */
+    serial_port = DEFAULT_SERIAL_PORT;
+    serial_baud = DEFAULT_SERIAL_BAUD;
     format = NULL;
     filename = NULL;
     show = GRAY;
@@ -77,13 +79,20 @@ int main(int argc, char **argv)
     if (filename == NULL) {
         printf( "Error: You must supply a filename\n%s", 
                 g_option_context_get_help(context, TRUE, NULL));
-        exit(2);
+        exit(1);
     }
     if (duration <= 0) {
         printf( "Error: You must supply a duration\n%s", 
                 g_option_context_get_help(context, TRUE, NULL));
-        exit(3);
+        exit(1);
     }
+    if (serial_port == NULL || serial_baud < 0)
+    {
+        printf( "Error: You must supply a serial port and speed\n%s", 
+                g_option_context_get_help(context, TRUE, NULL));
+        exit(1);
+    }
+
 
     if (format && format[0])
         show = format[0];
@@ -110,13 +119,15 @@ int main(int argc, char **argv)
 
     if (!use_stdout) {
         printf( "Recording Details:\n"
-                "  Duration   = %d\n"
-                "  Format     = %c\n"
-                "  Framerate  = %f\n"
-                "  Exposure   = %d\n"
-                "  Brightness = %d\n\n"
+                "  Duration     = %d\n"
+                "  Format       = %c\n"
+                "  Framerate    = %f\n"
+                "  Exposure     = %d\n"
+                "  Brightness   = %d\n"
+                "  Serial port  = %s\n"
+                "  Serial baud  = %d\n\n"
                 "Recording:\n",
-                duration,show,framerate,exposure,brightness);
+                duration,show,framerate,exposure,brightness,serial_port, serial_baud);
     }
 
     // setup capture
@@ -141,7 +152,7 @@ int main(int argc, char **argv)
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not start camera iso transmission");
 
     // open the serial port and start the serial thread
-    parser.serial = serial_open(SERIAL_PORT, SERIAL_BAUD);
+    parser.serial = serial_open(serial_port, serial_baud);
     serial_set_blocking(parser.serial);
     pthread_create( &thread, NULL, parse_pppz_thread, (void*) &parser);
 

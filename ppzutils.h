@@ -2,6 +2,7 @@
 #define PPZ_UTILS_H
 
 #include <inttypes.h>
+#include <glib.h>
 
 /* FIXME: Should include the generated file directly */
 
@@ -22,6 +23,10 @@
 
 #define CSV_HEADER "ax, ay, az, gp, gq, gr, body_phi, body_theta, body_psi\n"
 #define CSV_FORMAT "%2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f\n"
+
+#define DEFAULT_SERIAL_PORT "/dev/ttyUSB0"
+#define DEFAULT_SERIAL_BAUD 115200
+
 
 typedef enum {
     STATE_UNINIT,
@@ -56,6 +61,13 @@ typedef struct __parser
 
     uint8_t debug;
 } PprzParser_t;
+
+/**
+ * Function and macro to setup camera from GOption command line arguments
+ */
+#define GOPTION_ENTRY_SERIAL_SETUP_ARGUMENTS(_port, _speed)                                     \
+      { "port", 'p', 0, G_OPTION_ARG_STRING, _port, "Serial port", "/dev/ttyUSB0" },            \
+      { "speed", 's', 0, G_OPTION_ARG_INT, _speed, "Serial baud", "115200" }
 
 void ppz_parse_serial (PprzParser_t *parser);
 void *parse_pppz_thread(void *ptr);
