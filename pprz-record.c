@@ -15,138 +15,10 @@
 #include "serial.h"
 #include "ppzutils.h"
 
-#define SERIAL_PORT "/dev/ttyACM0"
-#define SERIAL_BAUD 57600
-
-#define UNINIT 0
-#define GOT_STX 1
-#define GOT_LENGTH 2
-#define GOT_PAYLOAD 3
-#define GOT_CRC1 4
-
-typedef struct __parser
-{
-    int status;
-    int num;
-    int ignored;
-    uint8_t pprz_payload_len;
-    uint8_t payload_idx;
-    uint8_t pprz_msg_received;
-    int pprz_ovrn;
-    int pprz_error;
-    char payload[256];
-    uint8_t ck_a;
-    uint8_t ck_b;
-
-    /* Thread communication */
-    uint8_t finished;
-    char data[AHRS_PAYLOAD_LEN];
-    int serial;
-} PprzParser_t;
+#define SERIAL_PORT "/dev/ttyUSB1"
+#define SERIAL_BAUD 115200
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-void ppz_parse_serial (PprzParser_t *parser)
-{
-    uint8_t c;
-    int i;
-
-    i = serial_read_port(parser->serial, &c, 1);
-    //if (i != 1)
-    //    printf("---------------------------");
-
-    if (i) {
-        //Adapted from pprz_transport.h
-        //printf("%d %x %d\n", c == 0x99, c, parser->status);
-        switch (parser->status) {
-            case UNINIT:
-                if (c == STX)
-                    parser->status++;
-                break;
-            case GOT_STX:
-                if (parser->pprz_msg_received) {
-                    parser->pprz_ovrn++;
-                    goto error;
-                }
-                parser->pprz_payload_len = c-4; // Counting STX, LENGTH and CRC1 and CRC2 
-                parser->ck_a = parser->ck_b = c;
-                parser->status++;
-                parser->payload_idx = 0;
-                break;
-            case GOT_LENGTH:
-                parser->payload[parser->payload_idx] = c;
-                parser->ck_a += c; parser->ck_b += parser->ck_a;
-                parser->payload_idx++;
-                if (parser->payload_idx == parser->pprz_payload_len)
-                    parser->status++;
-                break;
-            case GOT_PAYLOAD:
-                if (c != parser->ck_a)
-                    goto error;
-                parser->status++;
-                break;
-            case GOT_CRC1:
-                if (c != parser->ck_b)
-                    goto error;
-                parser->pprz_msg_received = TRUE;
-                goto restart;
-            default:
-                //printf(".............................");
-                break;
-        }
-    return;
-    error:
-        parser->pprz_error++;
-        //printf("!");
-    restart:
-        parser->status = UNINIT;
-    }
-    return;
-}
-
-void *parse_pppz_thread(void *ptr)
-{
-    PprzParser_t *parser = (PprzParser_t *)ptr;
-
-    parser->serial = serial_open(SERIAL_PORT, SERIAL_BAUD);
-    serial_set_blocking(parser->serial);
-    parser->status = 0;
-    parser->pprz_msg_received = FALSE;
-    parser->finished = FALSE;
-    parser->num = 0;
-    parser->ignored = 0;
-    parser->pprz_ovrn = 0;
-    parser->pprz_error = 0;
-
-    if (parser->serial == -1)
-        return 0;
-
-    while(parser->finished == FALSE)
-    {
-        ppz_parse_serial (parser);
-        if (parser->pprz_msg_received) {
-            parser->num++;
-            parser->pprz_msg_received = FALSE;
-
-            if ((uint8_t)parser->payload[1] == AHRS_MSG_ID && parser->pprz_payload_len == AHRS_PAYLOAD_LEN) {
-                printf("R: %2.2f P: %2.2f Y: %2.2f Az: %2.2f Gq: %2.2f\n",
-                        (float)(DL_BOOZ2_EMAV_STATE_body_phi(parser->payload) * 0.0139882),
-                        (float)(DL_BOOZ2_EMAV_STATE_body_theta(parser->payload) * 0.0139882),
-                        (float)(DL_BOOZ2_EMAV_STATE_body_psi(parser->payload) * 0.0139882),
-                        (float)(DL_BOOZ2_EMAV_STATE_az(parser->payload) * 0.0009766),
-                        (float)(DL_BOOZ2_EMAV_STATE_gr(parser->payload) * 0.0139882));
-                pthread_mutex_lock( &mutex );
-                memcpy(parser->data, parser->payload, parser->pprz_payload_len);
-                pthread_mutex_unlock( &mutex );
-            } else {
-                parser->ignored++;
-            }
-        }
-    }
-
-    close(parser->serial);
-    return 0;
-}
 
 int main(int argc, char **argv)
 {
@@ -170,7 +42,7 @@ int main(int argc, char **argv)
     int exposure, brightness, duration, i;
     long total_frame_size;
 
-    char data[AHRS_PAYLOAD_LEN];
+    char data[MESSAGE_LENGTH_EMAV_STATE];
 
     /* Option parsing */
     GError *error = NULL;
@@ -268,7 +140,9 @@ int main(int argc, char **argv)
     err=dc1394_video_set_transmission(camera, DC1394_ON);
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not start camera iso transmission");
 
-    // start the serial thread
+    // open the serial port and start the serial thread
+    parser.serial = serial_open(SERIAL_PORT, SERIAL_BAUD);
+    serial_set_blocking(parser.serial);
     pthread_create( &thread, NULL, parse_pppz_thread, (void*) &parser);
 
     // throw away some frames to prevent corruption from some modes taking a 
@@ -294,11 +168,11 @@ int main(int argc, char **argv)
         DC1394_WRN(err,"Could not capture a frame");
 
         pthread_mutex_lock( &mutex );
-        memcpy(data, parser.data, AHRS_PAYLOAD_LEN);      
+        memcpy(data, parser.data, MESSAGE_LENGTH_EMAV_STATE);      
         pthread_mutex_unlock( &mutex );
 
-        total_frame_size = write_frame_with_extras(frame, fp, data, AHRS_PAYLOAD_LEN);
-//        printf("%2.2f\n",(float)((DL_BOOZ2_EMAV_STATE_body_theta(data)) * 0.0139882));
+        total_frame_size = write_frame_with_extras(frame, fp, data, MESSAGE_LENGTH_EMAV_STATE);
+//        printf("%2.2f\n",(float)((MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_theta(data)) * 0.0139882));
         
         err=dc1394_capture_enqueue(camera,frame);
         DC1394_WRN(err,"releasing buffer");

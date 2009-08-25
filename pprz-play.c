@@ -52,7 +52,7 @@ typedef struct __playback
     dc1394video_frame_t frame;
     long                total_frame_size;
     show_mode_t         show;
-    uint8_t             data[AHRS_PAYLOAD_LEN];
+    uint8_t             data[MESSAGE_LENGTH_EMAV_STATE];
 } playback_t;
 
 static int 
@@ -66,14 +66,9 @@ renderframe(int i, playback_t *play)
             free(play->frame.image);
             play->frame.image = NULL;
         }
-        read_frame_with_extras( &(play->frame), play->fp , play->data, AHRS_PAYLOAD_LEN);
+        read_frame_with_extras( &(play->frame), play->fp , play->data, MESSAGE_LENGTH_EMAV_STATE);
 #if DEBUGGING
-        printf("R: %2.2f P: %2.2f Y: %2.2f Az: %2.2f Gq: %2.2f\n",
-                (float)(DL_BOOZ2_EMAV_STATE_body_phi(play->data) * 0.0139882),
-                (float)(DL_BOOZ2_EMAV_STATE_body_theta(play->data) * 0.0139882),
-                (float)(DL_BOOZ2_EMAV_STATE_body_psi(play->data) * 0.0139882),
-                (float)(DL_BOOZ2_EMAV_STATE_az(play->data) * 0.0009766),
-                (float)(DL_BOOZ2_EMAV_STATE_gr(play->data) * 0.0139882));
+        parser_print(parser);
 #endif
         return 1;
     } else {
@@ -165,7 +160,7 @@ int main( int argc, char *argv[])
     }
 
     // read the first frame
-    play.total_frame_size = read_frame_with_extras(&play.frame, play.fp, play.data, AHRS_PAYLOAD_LEN);
+    play.total_frame_size = read_frame_with_extras(&play.frame, play.fp, play.data, MESSAGE_LENGTH_EMAV_STATE);
     if (play.frame.color_coding == DC1394_COLOR_CODING_MONO8)
         play.show = GRAY;
     else if (play.frame.color_coding == DC1394_COLOR_CODING_RGB8)

@@ -6,8 +6,8 @@ LIBS += $(GLIB_LIBS)
 
 LDADD = libutil.a
 
-noinst_LIBRARIES = libutil.a
-bin_PROGRAMS = dc1394-camls dc1394-record pprz-record
+noinst_LIBRARIES = libutil.a libppz.a
+bin_PROGRAMS = dc1394-camls dc1394-record pprz-record pprz-print-telemetry
 
 if ENABLE_GTK
 noinst_LIBRARIES += libgtkutil.a
@@ -19,7 +19,9 @@ bin_PROGRAMS +=     \
     pprz-to-image-files
 endif
 
-libutil_a_SOURCES = utils.c serial.c
+libppz_a_SOURCES = serial.c ppzutils.c
+
+libutil_a_SOURCES = utils.c
 libutil_a_CFLAGS = $(GLIB_CFLAGS)
 
 libgtkutil_a_SOURCES = gtkutils.c
@@ -30,14 +32,18 @@ dc1394_camls_SOURCES = camls.c
 dc1394_record_SOURCES = record.c
 
 pprz_record_SOURCES = pprz-record.c
+pprz_record_LDADD = libutil.a libppz.a
+
+pprz_print_telemetry_SOURCES = pprz-print-telemetry.c
+pprz_print_telemetry_LDADD = libppz.a
 
 pprz_play_SOURCES = pprz-play.c
 pprz_play_CFLAGS = $(GTK_CFLAGS)
-pprz_play_LDADD = $(GTK_LIBS) libgtkutil.a libutil.a
+pprz_play_LDADD = $(GTK_LIBS) libgtkutil.a libutil.a libppz.a
 
 pprz_to_image_files_SOURCES = pprz-to-image-files.c
 pprz_to_image_files_CFLAGS = $(GTK_CFLAGS)
-pprz_to_image_files_LDADD = $(GTK_LIBS) libgtkutil.a libutil.a
+pprz_to_image_files_LDADD = $(GTK_LIBS) libgtkutil.a libutil.a  libppz.a
 
 dc1394_play_SOURCES = play.c
 dc1394_play_CFLAGS = $(GTK_CFLAGS)

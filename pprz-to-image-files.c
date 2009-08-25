@@ -49,7 +49,7 @@ int main( int argc, char *argv[])
     int i;
     long total_frame_size;
     dc1394video_frame_t frame;
-    uint8_t             data[AHRS_PAYLOAD_LEN];
+    uint8_t             data[MESSAGE_LENGTH_EMAV_STATE];
     show_mode_t         show;
 
     /* Option parsing */
@@ -93,7 +93,7 @@ int main( int argc, char *argv[])
     }
 
     // read the first frame
-    total_frame_size = read_frame_with_extras(&frame, fp, data, AHRS_PAYLOAD_LEN);
+    total_frame_size = read_frame_with_extras(&frame, fp, data, MESSAGE_LENGTH_EMAV_STATE);
     if (frame.color_coding == DC1394_COLOR_CODING_MONO8)
         show = GRAY;
     else if (frame.color_coding == DC1394_COLOR_CODING_RGB8)
@@ -130,7 +130,7 @@ int main( int argc, char *argv[])
             frame.image = NULL;
         }
 
-        read_frame_with_extras( &frame, fp , data, AHRS_PAYLOAD_LEN);
+        read_frame_with_extras( &frame, fp , data, MESSAGE_LENGTH_EMAV_STATE);
 
         render_frame_to_pixbuf(&frame, &pb, show);
 
@@ -141,15 +141,15 @@ int main( int argc, char *argv[])
 
         csvline = g_strdup_printf("%d, " CSV_FORMAT,
                             i,
-                            (float)(DL_BOOZ2_EMAV_STATE_ax(data) * 0.0009766),
-                            (float)(DL_BOOZ2_EMAV_STATE_ay(data) * 0.0009766),
-                            (float)(DL_BOOZ2_EMAV_STATE_az(data) * 0.0009766),
-                            (float)(DL_BOOZ2_EMAV_STATE_gp(data) * 0.0139882),
-                            (float)(DL_BOOZ2_EMAV_STATE_gq(data) * 0.0139882),
-                            (float)(DL_BOOZ2_EMAV_STATE_gr(data) * 0.0139882),
-                            (float)(DL_BOOZ2_EMAV_STATE_body_phi(data) * 0.0139882),
-                            (float)(DL_BOOZ2_EMAV_STATE_body_theta(data) * 0.0139882),
-                            (float)(DL_BOOZ2_EMAV_STATE_body_psi(data) * 0.0139882));
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_ax(data) * 0.0009766),
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_ay(data) * 0.0009766),
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_az(data) * 0.0009766),
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_gp(data) * 0.0139882),
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_gq(data) * 0.0139882),
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_gr(data) * 0.0139882),
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_phi(data) * 0.0139882),
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_theta(data) * 0.0139882),
+                            (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_psi(data) * 0.0139882));
         fwrite(csvline, sizeof(char), strlen(csvline), csv);
         free(csvline);
 

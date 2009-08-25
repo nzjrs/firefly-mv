@@ -2,10 +2,12 @@
 *.pgm
 *.ppm
 *.bin
+*.a
 dc1394-*
 pprz-play
 pprz-record
 pprz-to-image-files
+pprz-print-telemetry
 .deps/
 Makefile
 Makefile.in
@@ -27,3 +29,5 @@ libtool
 ltmain.sh
 missing
 stamp-h1
+compile
+

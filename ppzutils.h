@@ -3,21 +3,62 @@
 
 #include <inttypes.h>
 
-#define DL_BOOZ2_EMAV_STATE_ax(_payload) ((int32_t)(*((uint8_t*)_payload+2)|*((uint8_t*)_payload+2+1)<<8|((uint32_t)*((uint8_t*)_payload+2+2))<<16|((uint32_t)*((uint8_t*)_payload+2+3))<<24))
-#define DL_BOOZ2_EMAV_STATE_ay(_payload) ((int32_t)(*((uint8_t*)_payload+6)|*((uint8_t*)_payload+6+1)<<8|((uint32_t)*((uint8_t*)_payload+6+2))<<16|((uint32_t)*((uint8_t*)_payload+6+3))<<24))
-#define DL_BOOZ2_EMAV_STATE_az(_payload) ((int32_t)(*((uint8_t*)_payload+10)|*((uint8_t*)_payload+10+1)<<8|((uint32_t)*((uint8_t*)_payload+10+2))<<16|((uint32_t)*((uint8_t*)_payload+10+3))<<24))
-#define DL_BOOZ2_EMAV_STATE_gp(_payload) ((int32_t)(*((uint8_t*)_payload+14)|*((uint8_t*)_payload+14+1)<<8|((uint32_t)*((uint8_t*)_payload+14+2))<<16|((uint32_t)*((uint8_t*)_payload+14+3))<<24))
-#define DL_BOOZ2_EMAV_STATE_gq(_payload) ((int32_t)(*((uint8_t*)_payload+18)|*((uint8_t*)_payload+18+1)<<8|((uint32_t)*((uint8_t*)_payload+18+2))<<16|((uint32_t)*((uint8_t*)_payload+18+3))<<24))
-#define DL_BOOZ2_EMAV_STATE_gr(_payload) ((int32_t)(*((uint8_t*)_payload+22)|*((uint8_t*)_payload+22+1)<<8|((uint32_t)*((uint8_t*)_payload+22+2))<<16|((uint32_t)*((uint8_t*)_payload+22+3))<<24))
-#define DL_BOOZ2_EMAV_STATE_body_phi(_payload) ((int32_t)(*((uint8_t*)_payload+26)|*((uint8_t*)_payload+26+1)<<8|((uint32_t)*((uint8_t*)_payload+26+2))<<16|((uint32_t)*((uint8_t*)_payload+26+3))<<24))
-#define DL_BOOZ2_EMAV_STATE_body_theta(_payload) ((int32_t)(*((uint8_t*)_payload+30)|*((uint8_t*)_payload+30+1)<<8|((uint32_t)*((uint8_t*)_payload+30+2))<<16|((uint32_t)*((uint8_t*)_payload+30+3))<<24))
-#define DL_BOOZ2_EMAV_STATE_body_psi(_payload) ((int32_t)(*((uint8_t*)_payload+34)|*((uint8_t*)_payload+34+1)<<8|((uint32_t)*((uint8_t*)_payload+34+2))<<16|((uint32_t)*((uint8_t*)_payload+34+3))<<24))
+/* FIXME: Should include the generated file directly */
+
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_ax(_payload) (int32_t)(*((uint8_t*)_payload+0)|*((uint8_t*)_payload+0+1)<<8|((uint32_t)*((uint8_t*)_payload+0+2))<<16|((uint32_t)*((uint8_t*)_payload+0+3))<<24)
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_ay(_payload) (int32_t)(*((uint8_t*)_payload+4)|*((uint8_t*)_payload+4+1)<<8|((uint32_t)*((uint8_t*)_payload+4+2))<<16|((uint32_t)*((uint8_t*)_payload+4+3))<<24)
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_az(_payload) (int32_t)(*((uint8_t*)_payload+8)|*((uint8_t*)_payload+8+1)<<8|((uint32_t)*((uint8_t*)_payload+8+2))<<16|((uint32_t)*((uint8_t*)_payload+8+3))<<24)
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_gp(_payload) (int32_t)(*((uint8_t*)_payload+12)|*((uint8_t*)_payload+12+1)<<8|((uint32_t)*((uint8_t*)_payload+12+2))<<16|((uint32_t)*((uint8_t*)_payload+12+3))<<24)
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_gq(_payload) (int32_t)(*((uint8_t*)_payload+16)|*((uint8_t*)_payload+16+1)<<8|((uint32_t)*((uint8_t*)_payload+16+2))<<16|((uint32_t)*((uint8_t*)_payload+16+3))<<24)
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_gr(_payload) (int32_t)(*((uint8_t*)_payload+20)|*((uint8_t*)_payload+20+1)<<8|((uint32_t)*((uint8_t*)_payload+20+2))<<16|((uint32_t)*((uint8_t*)_payload+20+3))<<24)
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_phi(_payload) (int32_t)(*((uint8_t*)_payload+24)|*((uint8_t*)_payload+24+1)<<8|((uint32_t)*((uint8_t*)_payload+24+2))<<16|((uint32_t)*((uint8_t*)_payload+24+3))<<24)
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_theta(_payload) (int32_t)(*((uint8_t*)_payload+28)|*((uint8_t*)_payload+28+1)<<8|((uint32_t)*((uint8_t*)_payload+28+2))<<16|((uint32_t)*((uint8_t*)_payload+28+3))<<24)
+#define MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_psi(_payload) (int32_t)(*((uint8_t*)_payload+32)|*((uint8_t*)_payload+32+1)<<8|((uint32_t)*((uint8_t*)_payload+32+2))<<16|((uint32_t)*((uint8_t*)_payload+32+3))<<24)
 
 #define STX 0x99
-#define AHRS_MSG_ID 0xBC
-#define AHRS_PAYLOAD_LEN (2+4+4+4+4+4+4+4+4+4)
+#define MESSAGE_ID_EMAV_STATE 50
+#define MESSAGE_LENGTH_EMAV_STATE (0+4+4+4+4+4+4+4+4+4)
+#define COMM_NUM_NON_PAYLOAD_BYTES 6
 
 #define CSV_HEADER "ax, ay, az, gp, gq, gr, body_phi, body_theta, body_psi\n"
 #define CSV_FORMAT "%2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f, %2.2f\n"
+
+typedef enum {
+    STATE_UNINIT,
+    STATE_GOT_STX,
+    STATE_GOT_LENGTH,
+    STATE_GOT_ACID,
+    STATE_GOT_MSGID,
+    STATE_GOT_PAYLOAD,
+    STATE_GOT_CRC1
+} ParseState_t;
+
+typedef struct __parser
+{
+    ParseState_t status;
+    int num;
+    int ignored;
+    uint8_t pprz_payload_len;
+    uint8_t idx;
+    uint8_t pprz_msg_received;
+    int pprz_ovrn;
+    int pprz_error;
+    char payload[256];
+    uint8_t acid;
+    uint8_t msgid;
+    uint8_t ck_a;
+    uint8_t ck_b;
+
+    /* Thread communication */
+    uint8_t finished;
+    char data[MESSAGE_LENGTH_EMAV_STATE];
+    int serial;
+
+    uint8_t debug;
+} PprzParser_t;
+
+void ppz_parse_serial (PprzParser_t *parser);
+void *parse_pppz_thread(void *ptr);
+void parser_print(PprzParser_t *parser);
 
 #endif /* PPZ_UTILS_H */
