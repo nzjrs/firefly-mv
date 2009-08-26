@@ -44,8 +44,8 @@
 
 int main( int argc, char *argv[])
 {
-    char                *filename, *dir, *csvname, *csvline;
-    FILE                *fp, *csv;
+    char                *filename, *dir, *imucsvname, *framecsvname, *csvline;
+    FILE                *fp, *imucsv, *framecsv;
     int                 i;
     long                total_frame_size;
     dc1394video_frame_t frame;
@@ -111,13 +111,22 @@ int main( int argc, char *argv[])
     g_type_init();
     gdk_rgb_init();
 
-    /* open the csv file */
-    csvname = g_strdup_printf("%s/imu.csv", dir);
-    csv = fopen(csvname, "w");
-    if (csv == NULL)
-        return 9;
-    csvline = g_strdup_printf("frame, %s", CSV_HEADER);
-    fwrite(csvline, sizeof(char), strlen(csvline), csv);
+    /* open the imu csv file */
+    imucsvname = g_strdup_printf("%s/imu.csv", dir);
+    imucsv = fopen(imucsvname, "w");
+    if (imucsv == NULL)
+        exit(1);
+    csvline = g_strdup_printf("frame, frame-timestamp, imu-timestamp, %s", CSV_HEADER);
+    fwrite(csvline, sizeof(char), strlen(csvline), imucsv);
+    free(csvline);
+
+    /* open the image frame csv file */
+    framecsvname = g_strdup_printf("%s/frame.csv", dir);
+    framecsv = fopen(framecsvname, "w");
+    if (framecsv == NULL)
+        exit(1);
+    csvline = g_strdup_printf("frame, timestamp\n");
+    fwrite(csvline, sizeof(char), strlen(csvline), framecsv);
     free(csvline);
     
     /* go back to start of file */
@@ -142,8 +151,9 @@ int main( int argc, char *argv[])
         g_object_unref(pb);
         free(fname);
 
-        csvline = g_strdup_printf("%d, %llu, " CSV_FORMAT,
+        csvline = g_strdup_printf("%d, %llu, %llu, " CSV_FORMAT,
                             i,
+                            frame.timestamp,
                             record.timestamp,
                             (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_ax(record.data) * 0.0009766),
                             (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_ay(record.data) * 0.0009766),
@@ -154,7 +164,11 @@ int main( int argc, char *argv[])
                             (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_phi(record.data) * 0.0139882),
                             (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_theta(record.data) * 0.0139882),
                             (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_psi(record.data) * 0.0139882));
-        fwrite(csvline, sizeof(char), strlen(csvline), csv);
+        fwrite(csvline, sizeof(char), strlen(csvline), imucsv);
+        free(csvline);
+
+        csvline = g_strdup_printf("%d, %llu\n", i, frame.timestamp);
+        fwrite(csvline, sizeof(char), strlen(csvline), framecsv);
         free(csvline);
 
         i++;
@@ -162,7 +176,8 @@ int main( int argc, char *argv[])
     printf("Wrote %d frames (%ld)\n", i, total_frame_size);
 
     fclose(fp);
-    fclose(csv);
+    fclose(imucsv);
+    fclose(framecsv);
 
     return 0;
 }
