@@ -77,21 +77,26 @@ void print_video_mode_info( dc1394camera_t *camera , dc1394video_mode_t mode);
 /**
  * Foo
  */
-long write_frame_binary_header(dc1394video_frame_t *frame, FILE *fp);
+long write_frame(dc1394video_frame_t *frame, FILE *fp);
 
 /**
  * Foo
  */
-long read_frame_binary_header(dc1394video_frame_t *frame, FILE *fp);
-
-long write_frame(dc1394video_frame_t *frame, FILE *fp);
-
 long read_frame(dc1394video_frame_t *frame, FILE *fp);
 
+/**
+ * Foo
+ */
 long write_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra, uint8_t nextra);
 
+/**
+ * Foo
+ */
 long read_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra, uint8_t nextra);
 
+/**
+ * Foo
+ */
 void print_frame_info(dc1394video_frame_t *frame);
 
 /**

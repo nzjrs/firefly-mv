@@ -383,46 +383,6 @@ void print_video_mode_info( dc1394camera_t *camera , dc1394video_mode_t mode)
 
 }
 
-#define HEADER_SIZE                 \
-    (sizeof(uint32_t) * 2) +        \
-    sizeof(uint64_t) +              \
-    sizeof(dc1394video_mode_t) +    \
-    sizeof(dc1394color_coding_t) +  \
-    sizeof(dc1394color_filter_t) +  \
-    sizeof(uint32_t)
-
-
-long write_frame_binary_header(dc1394video_frame_t *frame, FILE *fp)
-{
-    long nbytes = HEADER_SIZE;
-
-    fwrite(frame->size, sizeof(uint32_t), 2, fp);
-    fwrite(&(frame->total_bytes), sizeof(uint64_t), 1, fp);
-    fwrite(&(frame->video_mode), sizeof(dc1394video_mode_t), 1, fp);
-    fwrite(&(frame->color_coding), sizeof(dc1394color_coding_t), 1, fp);
-    fwrite(&(frame->color_filter), sizeof(dc1394color_filter_t), 1, fp);
-    fwrite(&(frame->stride), sizeof(uint32_t), 1, fp);
-
-    print_frame_info(frame);
-    printf("Wrote %ld bytes\n", nbytes);
-
-    return nbytes;
-}
-
-long read_frame_binary_header(dc1394video_frame_t *frame, FILE *fp)
-{
-    long nbytes = HEADER_SIZE;
-
-    fread(frame->size, sizeof(uint32_t), 2, fp);
-    fread(&(frame->total_bytes), sizeof(uint64_t), 1, fp);
-    fread(&(frame->video_mode), sizeof(dc1394video_mode_t), 1, fp);
-    fread(&(frame->color_coding), sizeof(dc1394color_coding_t), 1, fp);
-    fread(&(frame->color_filter), sizeof(dc1394color_filter_t), 1, fp);
-    fread(&(frame->stride), sizeof(uint32_t), 1, fp);
-
-    return nbytes;
-}
-
 long write_frame(dc1394video_frame_t *frame, FILE *fp)
 {
     fwrite(frame, sizeof(dc1394video_frame_t), 1, fp);
