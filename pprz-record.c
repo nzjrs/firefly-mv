@@ -156,6 +156,8 @@ int main(int argc, char **argv)
     DC1394_ERR_CLN_RTN(err,cleanup_and_exit(camera),"Could not start camera iso transmission");
 
     // open the serial port and start the serial thread
+    parser.debug = FALSE;
+    parser.silent = use_stdout;
     parser.serial = serial_open(serial_port, serial_baud);
     serial_set_blocking(parser.serial);
     pthread_create( &thread, NULL, parse_pppz_thread, (void*) &parser);

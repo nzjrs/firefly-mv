@@ -59,7 +59,9 @@ typedef struct __parser
     char data[MESSAGE_LENGTH_EMAV_STATE];
     int serial;
 
+    /* Control printing to stdout/err */
     uint8_t debug;
+    uint8_t silent;
 
     uint64_t timestamp;
 } PprzParser_t;

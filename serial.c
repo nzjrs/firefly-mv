@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdio.h>
 
 #include "serial.h"
 
@@ -19,21 +20,19 @@ int serial_open(const char *port, unsigned int baud) {
     
     // flush serial port
     if (tcflush(fd, TCIFLUSH) != 0) {
-        printf("Error flushing serial port\n");
+        fprintf(stderr, "Error flushing serial port\n");
         close(fd);
         return -1;
     }
 
     // set required port parameters 
     if ( tcgetattr( fd, &config ) != 0 ) {
-		printf("Unable to read port settings\n");
+		fprintf(stderr, "Unable to read port settings\n");
 		close(fd);
 		return -1;
     }
 
 #if OLD_WAY
-    printf("Setting port options (old way)\n");
-
     cfmakeraw( &config );
     // http://www.gnu.org/software/libtool/manual/libc/Noncanonical-Input.html
     // cfmakeraw does exactly this:
@@ -59,7 +58,6 @@ int serial_open(const char *port, unsigned int baud) {
     config.c_cflag &= ~CSTOPB;
     config.c_cflag |= CS8;
 #else
-    printf("Setting port options (new way)\n");
     // set to raw terminal type
     config.c_cflag = (CS8 | CLOCAL | CREAD);
     config.c_iflag = (IGNBRK | IGNPAR);
@@ -67,7 +65,7 @@ int serial_open(const char *port, unsigned int baud) {
 #endif
 
     if ( tcsetattr( fd, TCSANOW, &config ) != 0 ) {
-        printf("Unable to update port setting\n");
+        fprintf(stderr, "Unable to update port setting\n");
 		return -1;
     }
 
@@ -75,7 +73,6 @@ int serial_open(const char *port, unsigned int baud) {
     if (!ok)
         return -1;
 
-    printf("Opened %s @ %u baud OK\n", port, baud);
     return fd;
 }
 
@@ -84,7 +81,7 @@ unsigned int serial_set_baud(int fd, int baud) {
     speed_t speed = B9600;
 
     if ( tcgetattr( fd, &config ) != 0 ) {
-    	printf("Unable to poll port settings\n");
+        fprintf(stderr, "Unable to poll port settings\n");
 	    return 0;
     }
 
@@ -120,22 +117,22 @@ unsigned int serial_set_baud(int fd, int baud) {
             speed = B230400;
             break;
         default:
-            printf("Unsupported baud rate %u\n", baud);
+            fprintf(stderr, "Unsupported baud rate %u\n", baud);
         	return 0;
     }
     
     if ( cfsetispeed( &config, speed ) != 0 ) {
-    	printf("Problem setting input baud rate\n");
+        fprintf(stderr, "Problem setting input baud rate\n");
 	    return 0;
     }
 
     if ( cfsetospeed( &config, speed ) != 0 ) {
-        printf("Problem setting output baud rate\n");
+        fprintf(stderr, "Problem setting output baud rate\n");
 	    return 0;
     }
 
     if ( tcsetattr( fd, TCSANOW, &config ) != 0 ) {
-        printf("Unable to update port settings");
+        fprintf(stderr, "Unable to update port settings");
     	return 0;
     }
 
@@ -147,7 +144,7 @@ unsigned int serial_set_blocking(int fd) {
 
     // set required port parameters 
     if ( tcgetattr( fd, &config ) != 0 ) {
-		printf("Unable to read port settings\n");
+		fprintf(stderr, "Unable to read port settings\n");
 		return 0;
     }
     
@@ -156,7 +153,7 @@ unsigned int serial_set_blocking(int fd) {
     config.c_cc[VTIME] = 10;
 
     if ( tcsetattr( fd, TCSANOW, &config ) != 0 ) {
-	    printf("Unable to update port settings");
+	    fprintf(stderr, "Unable to update port settings");
     	return 0;
     }
     
@@ -172,8 +169,6 @@ int serial_read_port(int fd, char *buf, int len) {
         count = read(fd, buf, len);
         if ((errno != EAGAIN) || (count >= 0))
             break;
-//        else
-//            printf("..................................................");
         usleep(100);
     }
 #else
@@ -182,7 +177,7 @@ int serial_read_port(int fd, char *buf, int len) {
 
     if ( count < 0 ) {
         if (errno != EAGAIN) {
-            printf("Serial I/O error: %s\n", strerror(errno));
+            fprintf(stderr, "Serial I/O error: %s\n", strerror(errno));
         }
         buf[0] = '\0';
         return 0;
@@ -194,7 +189,7 @@ int serial_write_port(int fd, const char* buf, int len) {
     int count = write(fd, buf, len);
 
     if ( (int)count != len ) {
-        printf("Serial I/O error: %s\n", strerror(errno));
+        fprintf(stderr, "Serial I/O error: %s\n", strerror(errno));
 	}
 
     return count;

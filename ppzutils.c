@@ -147,5 +147,6 @@ void parser_print_buffer(char *payload)
 
 void parser_print(PprzParser_t *parser)
 {
-    parser_print_buffer(parser->payload);
+    if (!parser->silent)
+        parser_print_buffer(parser->payload);
 }
