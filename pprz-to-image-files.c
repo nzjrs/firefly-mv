@@ -142,8 +142,7 @@ int main( int argc, char *argv[])
             frame.image = NULL;
         }
 
-        read_frame_with_extras( &frame, fp , (uint8_t *)&record, PPRZ_RECORD_SIZE );
-
+        read_frame_with_extras(&frame, fp , (uint8_t *)&record, PPRZ_RECORD_SIZE);
         render_frame_to_pixbuf(&frame, &pb, show);
 
         fname = g_strdup_printf("%s/%u.jpg", dir, i);
