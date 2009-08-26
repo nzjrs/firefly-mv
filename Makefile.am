@@ -7,7 +7,7 @@ LIBS += $(GLIB_LIBS)
 LDADD = libutil.a
 
 noinst_LIBRARIES = libutil.a libppz.a
-bin_PROGRAMS = dc1394-camls dc1394-record pprz-record pprz-print-telemetry
+bin_PROGRAMS = dc1394-camls dc1394-record pprz-record pprz-print-telemetry pprz-parse-file
 
 if ENABLE_GTK
 noinst_LIBRARIES += libgtkutil.a
@@ -36,6 +36,9 @@ pprz_record_LDADD = libutil.a libppz.a
 
 pprz_print_telemetry_SOURCES = pprz-print-telemetry.c
 pprz_print_telemetry_LDADD = libppz.a
+
+pprz_parse_file_SOURCES = pprz-parse-file.c
+pprz_parse_file_LDADD = libutil.a libppz.a
 
 pprz_play_SOURCES = pprz-play.c
 pprz_play_CFLAGS = $(GTK_CFLAGS)

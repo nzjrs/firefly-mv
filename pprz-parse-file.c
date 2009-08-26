@@ -34,18 +34,16 @@
 #include <assert.h>
 
 #include <glib.h>
-#include <gtk/gtk.h>
 #include <dc1394/dc1394.h>
 
 #include "camera.h"
 #include "utils.h"
-#include "gtkutils.h"
 #include "ppzutils.h"
 
 int main( int argc, char *argv[])
 {
-    char                *filename, *dir, *csvname, *csvline;
-    FILE                *fp, *csv;
+    char                *filename, *csvline;
+    FILE                *fp;
     int                 i;
     long                total_frame_size;
     dc1394video_frame_t frame;
@@ -58,19 +56,17 @@ int main( int argc, char *argv[])
     /* Option parsing */
     GError              *error = NULL;
     GOptionContext      *context;
-    GOptionEntry        entries[] =
+    GOptionEntry entries[] =
     {
       { "input-filename", 'i', 0, G_OPTION_ARG_FILENAME, &filename, "Input filename", "FILE" },
-      { "output-dir", 'o', 0, G_OPTION_ARG_FILENAME, &dir, "Output dir", "PATH" },
       { NULL }
     };
 
-    context = g_option_context_new("- Firefly MV Camera Playback");
+    context = g_option_context_new("- Play recorded imu data");
     g_option_context_add_main_entries (context, entries, NULL);
 
     fp = NULL;
     filename = NULL;
-    dir = NULL;
 
     if (!g_option_context_parse (context, &argc, &argv, &error)) {
         printf( "Error: %s\n%s", 
@@ -78,18 +74,13 @@ int main( int argc, char *argv[])
                 g_option_context_get_help(context, TRUE, NULL));
         exit(1);
     }
-    if (filename == NULL || dir == NULL) {
-        printf( "Error: You must supply a filename and dir\n%s", 
+    if (filename == NULL) {
+        printf( "Error: You must supply a filename\n%s", 
                 g_option_context_get_help(context, TRUE, NULL));
         exit(2);
     }
 
-    if (filename[0] == '-') {
-        fp = stdin;
-    } else {
-        fp = fopen(filename, "rb");
-    }
-
+    fp = fopen(filename, "rb");
     if( fp == NULL ) { 
         perror("opening file");
         exit(1);
@@ -108,39 +99,17 @@ int main( int argc, char *argv[])
         exit(1);
     }
 
-    g_type_init();
-    gdk_rgb_init();
-
-    /* open the csv file */
-    csvname = g_strdup_printf("%s/imu.csv", dir);
-    csv = fopen(csvname, "w");
-    if (csv == NULL)
-        return 9;
-    csvline = g_strdup_printf("frame, %s", CSV_HEADER);
-    fwrite(csvline, sizeof(char), strlen(csvline), csv);
-    free(csvline);
-    
     /* go back to start of file */
     i = 0;
     fseek(fp, 0, SEEK_SET);
     while (!feof(fp)) 
     {
-        char *fname;
-        GdkPixbuf *pb;
-
         if (frame.image) {
             free(frame.image);
             frame.image = NULL;
         }
 
         read_frame_with_extras( &frame, fp , (uint8_t *)&record, PPRZ_RECORD_SIZE );
-
-        render_frame_to_pixbuf(&frame, &pb, show);
-
-        fname = g_strdup_printf("%s/%u.jpg", dir, i);
-        gdk_pixbuf_save (pb, fname, "jpeg", NULL, NULL);
-        g_object_unref(pb);
-        free(fname);
 
         csvline = g_strdup_printf("%d, %llu, " CSV_FORMAT,
                             i,
@@ -154,15 +123,14 @@ int main( int argc, char *argv[])
                             (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_phi(record.data) * 0.0139882),
                             (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_theta(record.data) * 0.0139882),
                             (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_psi(record.data) * 0.0139882));
-        fwrite(csvline, sizeof(char), strlen(csvline), csv);
+        fwrite(csvline, sizeof(char), strlen(csvline), stdout);
         free(csvline);
 
         i++;
     }
-    printf("Wrote %d frames (%ld)\n", i, total_frame_size);
+    printf("Read %d frames (%ld)\n", i, total_frame_size);
 
     fclose(fp);
-    fclose(csv);
 
     return 0;
 }

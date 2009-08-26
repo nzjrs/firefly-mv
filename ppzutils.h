@@ -60,6 +60,8 @@ typedef struct __parser
     int serial;
 
     uint8_t debug;
+
+    uint64_t timestamp;
 } PprzParser_t;
 
 typedef struct __record
@@ -79,6 +81,7 @@ typedef struct __record
 
 void ppz_parse_serial (PprzParser_t *parser);
 void *parse_pppz_thread(void *ptr);
+void parser_print_buffer(char *data);
 void parser_print(PprzParser_t *parser);
 
 #endif /* PPZ_UTILS_H */

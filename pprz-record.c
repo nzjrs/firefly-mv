@@ -43,7 +43,9 @@ int main(int argc, char **argv)
     char *serial_port;
     int serial_baud;
 
-    char data[MESSAGE_LENGTH_EMAV_STATE];
+    /* This structure, containing the payload and other timely information
+       is written to disk with the image file */
+    PprzRecord_t record;
 
     /* Option parsing */
     GError *error = NULL;
@@ -183,12 +185,14 @@ int main(int argc, char **argv)
         // timestamp it
         add_timestamp_to_frame(frame);
 
+        // Copy latest data from rx thread
         pthread_mutex_lock( &mutex );
-        memcpy(data, parser.data, MESSAGE_LENGTH_EMAV_STATE);      
+        memcpy(record.data, parser.data, MESSAGE_LENGTH_EMAV_STATE);  
+        record.timestamp = parser.timestamp;    
         pthread_mutex_unlock( &mutex );
 
-        total_frame_size = write_frame_with_extras(frame, fp, data, MESSAGE_LENGTH_EMAV_STATE);
-//        printf("%2.2f\n",(float)((MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_theta(data)) * 0.0139882));
+        // Write frame and data to file
+        total_frame_size = write_frame_with_extras(frame, fp, (uint8_t *)&record, PPRZ_RECORD_SIZE);
         
         err=dc1394_capture_enqueue(camera,frame);
         DC1394_WRN(err,"releasing buffer");

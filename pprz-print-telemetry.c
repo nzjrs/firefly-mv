@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -12,19 +13,18 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main(int argc, char **argv)
 {
-    FILE *fp = NULL;
-    unsigned int serial;
-    pthread_t thread;
-    PprzParser_t parser;
-    char data[MESSAGE_LENGTH_EMAV_STATE];
+    unsigned int    serial;
+    pthread_t       thread;
+    PprzParser_t    parser;
+    char            data[MESSAGE_LENGTH_EMAV_STATE];
 
-    char *serial_port;
-    int serial_baud;
+    char            *serial_port;
+    int             serial_baud;
 
     /* Option parsing */
-    GError *error = NULL;
-    GOptionContext *context;
-    GOptionEntry entries[] =
+    GError          *error = NULL;
+    GOptionContext  *context;
+    GOptionEntry    entries[] =
     {
       GOPTION_ENTRY_SERIAL_SETUP_ARGUMENTS(&serial_port, &serial_baud),
       { NULL }
@@ -58,15 +58,11 @@ int main(int argc, char **argv)
     while(1)
     {
         sleep(1);
-        //pthread_mutex_lock( &mutex );
-        //memcpy(data, parser.data, MESSAGE_LENGTH_EMAV_STATE);      
-        //pthread_mutex_unlock( &mutex );
     }
 
     // kill thread
     parser.finished = 1;
     pthread_join(thread, NULL);
-    fclose(fp);
 	return 0;
 }
 

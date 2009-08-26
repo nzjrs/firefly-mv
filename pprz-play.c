@@ -52,7 +52,7 @@ typedef struct __playback
     dc1394video_frame_t frame;
     long                total_frame_size;
     show_mode_t         show;
-    uint8_t             data[MESSAGE_LENGTH_EMAV_STATE];
+    PprzRecord_t        record;
 } playback_t;
 
 static int 
@@ -66,10 +66,7 @@ renderframe(int i, playback_t *play)
             free(play->frame.image);
             play->frame.image = NULL;
         }
-        read_frame_with_extras( &(play->frame), play->fp , play->data, MESSAGE_LENGTH_EMAV_STATE);
-#if DEBUGGING
-        parser_print(parser);
-#endif
+        read_frame_with_extras( &(play->frame), play->fp , (uint8_t *)&play->record, PPRZ_RECORD_SIZE );
         return 1;
     } else {
         return 0;
@@ -160,7 +157,7 @@ int main( int argc, char *argv[])
     }
 
     // read the first frame
-    play.total_frame_size = read_frame_with_extras(&play.frame, play.fp, play.data, MESSAGE_LENGTH_EMAV_STATE);
+    play.total_frame_size = read_frame_with_extras(&play.frame, play.fp,  (uint8_t *)&play.record, PPRZ_RECORD_SIZE );
     if (play.frame.color_coding == DC1394_COLOR_CODING_MONO8)
         play.show = GRAY;
     else if (play.frame.color_coding == DC1394_COLOR_CODING_RGB8)

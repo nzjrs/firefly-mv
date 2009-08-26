@@ -4,6 +4,13 @@
 #include <stdio.h>
 #include <pthread.h>
 
+static void add_timestamp(PprzParser_t *parser)
+{
+    GTimeVal time;
+    g_get_current_time (&time);
+    parser->timestamp = ((guint64)time.tv_sec * G_USEC_PER_SEC) + time.tv_usec;
+}
+
 #define UPDATE_CHECKSUM(_msg, _x)           \
     _msg->ck_a += _x;                       \
     _msg->ck_b += _msg->ck_a;               \
@@ -71,6 +78,7 @@ void ppz_parse_serial (PprzParser_t *parser)
             case STATE_GOT_CRC1:
                 if (c != parser->ck_b)
                     goto error;
+                add_timestamp(parser);
                 parser->pprz_msg_received = 1;
                 goto restart;
             default:
@@ -127,12 +135,17 @@ void *parse_pppz_thread(void *ptr)
     return 0;
 }
 
-void parser_print(PprzParser_t *parser)
+void parser_print_buffer(char *payload)
 {
     printf("R: %2.2f P: %2.2f Y: %2.2f Az: %2.2f Gq: %2.2f\n",
-        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_phi(parser->payload) * 0.0139882),
-        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_theta(parser->payload) * 0.0139882),
-        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_psi(parser->payload) * 0.0139882),
-        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_az(parser->payload) * 0.0009766),
-        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_gr(parser->payload) * 0.0139882));
+        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_phi(payload) * 0.0139882),
+        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_theta(payload) * 0.0139882),
+        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_body_psi(payload) * 0.0139882),
+        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_az(payload) * 0.0009766),
+        (float)(MESSAGE_EMAV_STATE_GET_FROM_BUFFER_gr(payload) * 0.0139882));
+}
+
+void parser_print(PprzParser_t *parser)
+{
+    parser_print_buffer(parser->payload);
 }
