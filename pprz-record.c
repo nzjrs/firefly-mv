@@ -31,6 +31,8 @@ int main(int argc, char **argv)
     pthread_t thread;
     PprzParser_t parser;
 
+    GTimeVal time;
+
     /* Options */
     show_mode_t show;
     char *format;
@@ -177,6 +179,9 @@ int main(int argc, char **argv)
         // get a single frame
         err=dc1394_capture_dequeue(camera, DC1394_CAPTURE_POLICY_WAIT, &frame);
         DC1394_WRN(err,"Could not capture a frame");
+
+        // timestamp it
+        add_timestamp_to_frame(frame);
 
         pthread_mutex_lock( &mutex );
         memcpy(data, parser.data, MESSAGE_LENGTH_EMAV_STATE);      

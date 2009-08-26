@@ -62,6 +62,14 @@ typedef struct __parser
     uint8_t debug;
 } PprzParser_t;
 
+typedef struct __record
+{
+    char data[MESSAGE_LENGTH_EMAV_STATE];
+    uint64_t    timestamp;
+} PprzRecord_t;
+
+#define PPRZ_RECORD_SIZE sizeof(PprzRecord_t)
+
 /**
  * Function and macro to setup camera from GOption command line arguments
  */

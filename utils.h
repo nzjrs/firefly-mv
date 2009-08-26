@@ -94,4 +94,10 @@ long read_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra
 
 void print_frame_info(dc1394video_frame_t *frame);
 
+/**
+ * The libusb backend for dc1394 does not timestamp frames. This function
+ * fills the frame->timestamp member with the current time
+ */
+void add_timestamp_to_frame(dc1394video_frame_t *frame);
+
 #endif

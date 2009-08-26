@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <glib.h>
+
 #include "utils.h"
 
 #ifndef CLAMP
@@ -459,5 +461,11 @@ long read_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra
     return sizeof(dc1394video_frame_t) + (sizeof(unsigned char) * frame->total_bytes) + nextra;
 }
 
-
+void add_timestamp_to_frame(dc1394video_frame_t *frame)
+{
+    GTimeVal time;
+    g_get_current_time (&time);
+    
+    frame->timestamp = ((guint64)time.tv_sec * G_USEC_PER_SEC) + time.tv_usec;
+}
 
