@@ -12,5 +12,9 @@ Installation
 3. Configure;
        ./configure --enable-gtk
 4. Run dc1394-camls to get your camera's GUID
-5. Edit camera.h and insert the GUID here
+5. Edit camera.h and insert the GUID here or pass the camera
+   GUID as an argument to the following programs
+       ./dc1394-view --guid=0x1234      #shows live video
+       ./dc1394-show --guid=0x1234      #shows a single frame
+       ./dc1394-record --guid=0x1234    #records video
 

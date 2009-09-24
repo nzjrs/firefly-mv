@@ -28,16 +28,17 @@ int main(int argc, char **argv)
     char *filename;
     double framerate;
     int exposure, brightness, duration, i;
+    guint64 guid;
 
     /* Option parsing */
     GError *error = NULL;
     GOptionContext *context;
     GOptionEntry entries[] =
     {
-      { "format", 'f', 0, G_OPTION_ARG_STRING, &format, "Format of image", "g,c,7" },
+      GOPTION_ENTRY_FORMAT(&format),
       { "output-filename", 'o', 0, G_OPTION_ARG_FILENAME, &filename, "Output filename", "FILE" },
       { "duration", 'd', 0, G_OPTION_ARG_INT, &duration, "Seconds to record", NULL },
-      GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(&framerate, &exposure, &brightness),
+      GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(&guid, &framerate, &exposure, &brightness),
       { NULL }
     };
 
@@ -45,6 +46,7 @@ int main(int argc, char **argv)
     g_option_context_add_main_entries (context, entries, NULL);
 
     /* Defaults */
+    guid = MY_CAMERA_GUID;
     format = NULL;
     filename = NULL;
     show = GRAY;
@@ -59,16 +61,10 @@ int main(int argc, char **argv)
                 g_option_context_get_help(context, TRUE, NULL));
         exit(1);
     }
-    if (filename == NULL) {
-        printf( "Error: You must supply a filename\n%s", 
-                g_option_context_get_help(context, TRUE, NULL));
-        exit(2);
-    }
-    if (duration <= 0) {
-        printf( "Error: You must supply a duration\n%s", 
-                g_option_context_get_help(context, TRUE, NULL));
-        exit(3);
-    }
+    if (filename == NULL)
+        app_exit(2, context, "Error: You must supply a filename");
+    if (duration <= 0)
+        app_exit(3, context, "Error: You must supply a duration");
 
     if (format && format[0])
         show = format[0];
@@ -81,17 +77,16 @@ int main(int argc, char **argv)
     }
 
     if( fp == NULL ) {
-        perror("creating output file");
-        exit(4);
+        app_exit(4, NULL, "Error creating output file");
     }
 
     d = dc1394_new ();
     if (!d)
-        exit(5);
+        app_exit(5, NULL, "Could not initialize libdc1394");
 
-    camera = dc1394_camera_new (d, MY_CAMERA_GUID);
+    camera = dc1394_camera_new (d, guid);
     if (!camera)
-        exit(6);
+        app_exit(6, context, "Could not find or initialize camera");
 
     if (!use_stdout) {
         printf( "Recording Details:\n"

@@ -459,5 +459,16 @@ long read_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra
     return sizeof(dc1394video_frame_t) + (sizeof(unsigned char) * frame->total_bytes) + nextra;
 }
 
+void app_exit(int code, GOptionContext *context, const char *msg)
+{
+    if (context && msg)
+        fprintf(stderr, "%s\n\n%s", msg, g_option_context_get_help(context, TRUE, NULL));
+    else if (msg)
+        fprintf(stderr, msg);
+    else if (context)
+        fprintf(stderr, "%s", g_option_context_get_help(context, TRUE, NULL));
+
+    exit(code);
+}
 
 

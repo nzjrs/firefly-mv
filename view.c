@@ -86,14 +86,15 @@ int main(int argc, char *argv[])
     double framerate;
     int exposure, brightness;
     view_t view;
+    guint64 guid;
 
     /* Option parsing */
     GError *error = NULL;
     GOptionContext *context;
     GOptionEntry entries[] =
     {
-      { "format", 'f', 0, G_OPTION_ARG_STRING, &format, "Format of image", "g,c,7" },
-      GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(&framerate, &exposure, &brightness),
+      GOPTION_ENTRY_FORMAT(&format),
+      GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(&guid, &framerate, &exposure, &brightness),
       { NULL }
     };
 
@@ -101,6 +102,7 @@ int main(int argc, char *argv[])
     g_option_context_add_main_entries (context, entries, NULL);
 
     /* Defaults */
+    guid = MY_CAMERA_GUID;
     view.show = GRAY;
     framerate = 30.0;
     exposure = -1;
@@ -122,17 +124,16 @@ int main(int argc, char *argv[])
             printf("Selected mode: %c\n", view.show);
             break;
         default:
-            printf("Invalid Mode\n%s", g_option_context_get_help(context, TRUE, NULL));
-            exit(1);
+            app_exit(1, context, "Invalid Mode"); 
     }
     
     d = dc1394_new ();
     if (!d)
-        exit(2);
+        app_exit(2, NULL, "Could not initialize libdc1394");
 
-    view.camera = dc1394_camera_new (d, MY_CAMERA_GUID);
-    if (!view.camera) 
-        exit(3);
+    view.camera = dc1394_camera_new (d, guid);
+    if (!view.camera)
+        app_exit(3, context, "Could not find or initialize camera");
 
     gtk_init( &argc, &argv );
 

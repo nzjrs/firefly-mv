@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <dc1394/dc1394.h>
 
@@ -60,11 +61,35 @@ int main(int argc, char *argv[])
     dc1394error_t err;
     unsigned int width, height;
     GtkWidget *window, *canvas;
+    char *format = NULL;
 
-    if (argc == 2)
-        show = argv[1][0];
-    else
-        show = 'g';
+    guint64 guid;
+
+    /* Option parsing */
+    GError *error = NULL;
+    GOptionContext *context;
+    GOptionEntry entries[] =
+    {
+      GOPTION_ENTRY_FORMAT(&format),
+      GOPTION_ENTRY_GUID(&guid),
+      { NULL }
+    };
+
+    context = g_option_context_new("- Firefly MV Camera Viewer");
+    g_option_context_add_main_entries (context, entries, NULL);
+
+    /* Defaults */
+    guid = MY_CAMERA_GUID;
+    show = GRAY;
+
+    if (!g_option_context_parse (context, &argc, &argv, &error)) {
+        printf( "Error: %s\n%s", 
+                error->message, 
+                g_option_context_get_help(context, TRUE, NULL));
+        exit(1);
+    }
+    if (format && format[0])
+        show = format[0];
 
     switch (show) {
         case GRAY:
@@ -79,11 +104,11 @@ int main(int argc, char *argv[])
     
     d = dc1394_new ();
     if (!d)
-        return 2;
+        app_exit(2, NULL, "Could not initialize libdc1394");
 
-    camera = dc1394_camera_new (d, MY_CAMERA_GUID);
-    if (!camera) 
-        return 3;
+    camera = dc1394_camera_new (d, guid);
+    if (!camera)
+        app_exit(3, context, "Could not find or initialize camera");
 
     gtk_init( &argc, &argv );
 

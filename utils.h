@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <stdio.h>
+#include <glib.h>
 #include <dc1394/dc1394.h>
 
 typedef enum {
@@ -59,7 +60,13 @@ dc1394error_t setup_brightness(
 /**
  * Function and macro to setup camera from GOption command line arguments
  */
-#define GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(_framerate, _exposure, _brightness)                \
+#define GOPTION_ENTRY_FORMAT(_format)                                                           \
+      { "format", 'f', 0, G_OPTION_ARG_STRING, _format, "Format of image", "g,c,7" }
+#define GOPTION_ENTRY_GUID(_guid)                                                               \
+      { "guid", 'g', 0, G_OPTION_ARG_INT64, _guid, "Camera GUID", "0x456" }                     \
+
+#define GOPTION_ENTRY_CAMERA_SETUP_ARGUMENTS(_guid, _framerate, _exposure, _brightness)         \
+      { "guid", 'g', 0, G_OPTION_ARG_INT64, _guid, "Camera GUID", "0x456" },                    \
       { "framerate", 'F', 0, G_OPTION_ARG_DOUBLE, _framerate, "Framerate", "15.0" },            \
       { "exposure", 'e', 0, G_OPTION_ARG_INT, _exposure, "Exposure (<0 = Auto)", "13" },        \
       { "brightness", 'b', 0, G_OPTION_ARG_INT, _brightness, "Brightness (<0 = Auto)", "34" }
@@ -93,5 +100,7 @@ long write_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extr
 long read_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra, uint8_t nextra);
 
 void print_frame_info(dc1394video_frame_t *frame);
+
+void app_exit(int code, GOptionContext *context, const char *msg);
 
 #endif
