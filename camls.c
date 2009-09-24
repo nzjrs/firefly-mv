@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     }
 
     for (i = 0; i < list->num; i++) {
-        dc1394camera_t *camera = dc1394_camera_new (d, list->ids[0].guid);
+        dc1394camera_t *camera = dc1394_camera_new (d, list->ids[i].guid);
 
         if (camera) {
             unsigned int j;
