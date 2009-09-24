@@ -1,7 +1,7 @@
 /*
- * Grab an image using libdc1394
+ * List dc1394 cameras currently connected and their capabilities
  *
- * Written by Damien Douxchamps <ddouxchamps@users.sf.net>
+ * Written by John Stowers <john.stowers@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,12 +17,6 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Description:
- *
- *  An extension to the original grab image sample program.  This demonstrates
- *  how to collect more detailed information on the various modes of the
- *  camera, convert one image format to another, and waiting so that the
- *  camera has time to capture the image before trying to write it out.
  */
 
 

@@ -1,7 +1,7 @@
 /*
- * Grab an image using libdc1394
+ * Play recorded video from the dc1394 camera
  *
- * Written by Damien Douxchamps <ddouxchamps@users.sf.net>
+ * Written by John Stowers <john.stowers@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Description:
+ *    Displays images recorded previously using dc1394-record. Left
+ *    mouse button advances frames, right mouse button returns to
+ *    the previous frame.
  *
- *  An extension to the original grab image sample program.  This demonstrates
- *  how to collect more detailed information on the various modes of the
- *  camera, convert one image format to another, and waiting so that the
- *  camera has time to capture the image before trying to write it out.
  */
 
 #include <stdio.h>
