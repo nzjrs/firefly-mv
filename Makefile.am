@@ -14,7 +14,8 @@ noinst_LIBRARIES += libgtkutil.a
 bin_PROGRAMS +=     \
     dc1394-play     \
     dc1394-show     \
-    dc1394-view
+    dc1394-view     \
+    dc1394-save
 endif
 
 libutil_a_SOURCES = utils.c
@@ -38,3 +39,8 @@ dc1394_show_LDADD = $(GTK_LIBS) libgtkutil.a libutil.a
 dc1394_view_SOURCES = view.c
 dc1394_view_CFLAGS = $(GTK_CFLAGS)
 dc1394_view_LDADD = $(GTK_LIBS) libgtkutil.a libutil.a
+
+dc1394_save_SOURCES = save-to-images.c
+dc1394_save_CFLAGS = $(GTK_CFLAGS)
+dc1394_save_LDADD = $(GTK_LIBS) libgtkutil.a libutil.a
+
