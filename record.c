@@ -69,6 +69,9 @@ int main(int argc, char **argv)
     };
 
     context = g_option_context_new("- Firefly MV Camera Recorder");
+    g_option_context_set_summary(context, 
+            "Records successive frames from the camera to\n"
+            "the specified binary output file");
     g_option_context_add_main_entries (context, entries, NULL);
 
     /* Defaults */

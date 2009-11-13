@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     };
 
     context = g_option_context_new("- Firefly MV Camera Viewer");
+    g_option_context_set_summary(context, "Shows live video from the selected camera");
     g_option_context_add_main_entries (context, entries, NULL);
 
     /* Defaults */
