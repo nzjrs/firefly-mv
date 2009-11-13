@@ -48,6 +48,7 @@ typedef struct __playback
     dc1394video_frame_t frame;
     long                total_frame_size;
     show_mode_t         show;
+    GtkWidget           *canvas;
 } playback_t;
 
 static int 
@@ -107,12 +108,40 @@ delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
     return TRUE;
 }
 
+static gboolean 
+next_frame(gpointer data)
+{
+    playback_t *play = (playback_t *)data;
+    GtkWidget *widget = play->canvas;
+
+    play->frame_number++;
+    if( !renderframe(play->frame_number, play) ) {
+        play->frame_number--;
+        return FALSE;
+    }
+
+    gtk_widget_queue_draw_area( widget, 0, 0, 
+            widget->allocation.width, widget->allocation.height);
+    return TRUE;
+}
+
+gboolean
+on_play_clicked_event (GtkWidget *widget, gpointer data)
+{
+    playback_t *play = (playback_t *)data;
+
+    gtk_widget_set_sensitive(widget, FALSE);
+    /*FIXME:    Get framerate from frame structure */
+    g_timeout_add(1000/60, next_frame, data);
+
+    return FALSE;
+}
+
 int main( int argc, char *argv[])
 {
     GtkWidget *window;
     GtkWidget *button;
     GtkWidget *vbox;
-    GtkWidget *canvas;
 
     playback_t play = { 0 };
 
@@ -185,27 +214,32 @@ int main( int argc, char *argv[])
     gtk_container_add( GTK_CONTAINER(window), vbox );
 
     // canvas (DrawingArea)
-    canvas = gtk_drawing_area_new();
-    gtk_widget_set_size_request(canvas, play.frame.size[0], play.frame.size[1]);
-    g_signal_connect (G_OBJECT (canvas), "expose_event",  
+    play.canvas = gtk_drawing_area_new();
+    gtk_widget_set_size_request(play.canvas, play.frame.size[0], play.frame.size[1]);
+    g_signal_connect (G_OBJECT (play.canvas), "expose_event",  
             G_CALLBACK (expose_event_callback), &play);
 
-    gtk_widget_set_events(canvas, GDK_LEAVE_NOTIFY_MASK
+    gtk_widget_set_events(play.canvas, GDK_LEAVE_NOTIFY_MASK
             | GDK_BUTTON_PRESS_MASK
             | GDK_BUTTON_RELEASE_MASK
             | GDK_POINTER_MOTION_MASK );
 
-    g_signal_connect( G_OBJECT(canvas), "button_press_event", 
+    g_signal_connect( G_OBJECT(play.canvas), "button_press_event", 
            G_CALLBACK(canvas_button_press), &play);
 
-    gtk_box_pack_start(GTK_BOX(vbox), canvas, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), play.canvas, TRUE, TRUE, 0);
 
-    // button 
+    // quit button 
     button = gtk_button_new_with_label( "Quit" );
     g_signal_connect_swapped( G_OBJECT(button), "clicked",
             G_CALLBACK(gtk_widget_destroy),
             G_OBJECT(window) );
+    gtk_box_pack_start(GTK_BOX(vbox), button, FALSE, TRUE, 0);
 
+    // play button 
+    button = gtk_button_new_with_label( "Play" );
+    g_signal_connect (G_OBJECT (button), "clicked",
+                      G_CALLBACK (on_play_clicked_event), (gpointer) &play);
     gtk_box_pack_start(GTK_BOX(vbox), button, FALSE, TRUE, 0);
 
     // display everything
