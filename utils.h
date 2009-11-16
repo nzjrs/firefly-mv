@@ -27,6 +27,8 @@
 #include <glib.h>
 #include <dc1394/dc1394.h>
 
+G_BEGIN_DECLS
+
 typedef enum {
     GRAY =      'g',
     COLOR =     'c',
@@ -123,5 +125,7 @@ long read_frame_with_extras(dc1394video_frame_t *frame, FILE *fp, uint8_t *extra
 void print_frame_info(dc1394video_frame_t *frame);
 
 void app_exit(int code, GOptionContext *context, const char *msg);
+
+G_END_DECLS
 
 #endif
