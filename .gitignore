@@ -1,4 +1,10 @@
+*.o
+*.lo
+*.a
+*.la
+*.pc
 .deps/
+.libs/
 Makefile
 Makefile.in
 Makefile.old
@@ -7,7 +13,6 @@ autom4te.cache/
 autoscan.log
 config.guess
 config.h.in
-config.h.in~
 config.log
 config.status
 config.sub
@@ -19,3 +24,9 @@ libtool
 ltmain.sh
 missing
 stamp-h1
+dc1394-camls
+dc1394-play
+dc1394-record
+dc1394-save
+dc1394-show
+dc1394-view
