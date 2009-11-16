@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: firefly-mv-utils-gtk
+Description: 
+URL: 
+Version: @VERSION@
+Requires: gtk+-2.0 libdc1394-2 >= 2.1
+Libs: -L{libdir}/firefly-mv-utils -l gtkutil
+Cflags: -I{includedir}/firefly-mv-utils

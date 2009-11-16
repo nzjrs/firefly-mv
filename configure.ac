@@ -24,5 +24,5 @@ AC_ARG_ENABLE([gtk], [  --enable-gtk  build gtk+ programs],[
     enable_gtk=no)
 AM_CONDITIONAL([ENABLE_GTK], [test x$enable_gtk = xyes])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile firefly-mv-utils-gtk.pc firefly-mv-utils.pc])
 AC_OUTPUT
