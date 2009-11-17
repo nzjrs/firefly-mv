@@ -9,4 +9,4 @@ URL:
 Version: @VERSION@
 Requires: firefly-mv-utils gtk+-2.0 libdc1394-2 >= 2.1
 Libs: -L${libdir}/firefly-mv-utils -lgtkutil
-Cflags: -I${includedir}/firefly-mv-utils
+Cflags: -I${includedir}
