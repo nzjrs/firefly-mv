@@ -54,8 +54,13 @@ dc1394error_t setup_color_capture(
     DC1394_ERR_RTN(err,"Could not setup camera - make sure that the video is supported by your camera");
 #else
     uint32_t packet_size, width, height;
-
     dc1394_get_image_size_from_video_mode(camera, video_mode, &width, &height);
+
+    err=dc1394_camera_reset(camera);
+    DC1394_ERR_RTN(err, "Could not reset camera");
+
+    err = dc1394_video_set_iso_speed(camera, DC1394_ISO_SPEED_200);
+    DC1394_ERR_RTN(err,"Could not setup camera ISO speed");
 
     err=dc1394_format7_get_recommended_packet_size (camera, video_mode, &packet_size);
     DC1394_ERR_RTN(err,"Could not get recommended packet size");
@@ -75,6 +80,7 @@ dc1394error_t setup_color_capture(
 
     err=dc1394_capture_setup(camera, 4, DC1394_CAPTURE_FLAGS_DEFAULT);
     DC1394_ERR_RTN(err,"Could not setup camera-\nmake sure that the video mode and framerate are\nsupported by your camera");
+
 #endif
     return DC1394_SUCCESS;
 }
@@ -84,6 +90,12 @@ dc1394error_t setup_gray_capture(
                 dc1394video_mode_t video_mode)
 {
     dc1394error_t err;
+
+    err=dc1394_camera_reset(camera);
+    DC1394_ERR_RTN(err, "Could not reset camera");
+
+    err = dc1394_video_set_iso_speed(camera, DC1394_ISO_SPEED_200);
+    DC1394_ERR_RTN(err,"Could not setup camera ISO speed");
 
     err=dc1394_video_set_mode(camera, video_mode);
     DC1394_ERR_RTN(err,"Could not set video mode");
