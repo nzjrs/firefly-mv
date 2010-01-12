@@ -263,7 +263,7 @@ static void print_video_mode( uint32_t format )
         print_case(DC1394_VIDEO_MODE_FORMAT7_7);
     default:
         dc1394_log_error("Unknown format: %i\n", format);
-        exit(1);
+        break;
     }
 
 }
@@ -284,7 +284,7 @@ static void print_color_coding(dc1394color_coding_t color_id)
         print_case(DC1394_COLOR_CODING_RAW16);
     default:
         dc1394_log_error("Unknown color coding = %d\n",color_id);
-        exit(1);
+        break;
     }
 }
 
@@ -297,7 +297,7 @@ static void print_color_filter(dc1394color_filter_t color)
         print_case(DC1394_COLOR_FILTER_BGGR);
     default:
         dc1394_log_error("Unknown color filter = %d\n",color);
-        exit(1);
+        break;
     }
 }
 
