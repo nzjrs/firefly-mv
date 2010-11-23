@@ -23,6 +23,11 @@ bin_PROGRAMS +=     \
     dc1394-save
 endif
 
+if ENABLE_OPENCV
+pkglib_LTLIBRARIES += libopencvutil.la
+pkgconfig_DATA += firefly-mv-utils-opencv.pc
+endif
+
 libutil_ladir = $(pkgincludedir)
 libutil_la_SOURCES = utils.c
 libutil_la_CFLAGS = $(GLIB_CFLAGS)
@@ -32,6 +37,11 @@ libgtkutil_ladir = $(pkgincludedir)
 libgtkutil_la_SOURCES = gtkutils.c
 libgtkutil_la_CFLAGS = $(GTK_CFLAGS)
 libgtkutil_la_HEADERS = gtkutils.h
+
+libopencvutil_ladir = $(pkgincludedir)
+libopencvutil_la_SOURCES = opencvutils.c
+libopencvutil_la_CFLAGS = $(OPENCV_CFLAGS)
+libopencvutil_la_HEADERS = opencvutils.h
 
 dc1394_camls_SOURCES = camls.c
 

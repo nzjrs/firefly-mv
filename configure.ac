@@ -1,4 +1,4 @@
-AC_INIT([firefly-mv-utils], [0.1], [john.stowers@gmail.com])
+AC_INIT([firefly-mv-utils], [0.2], [john.stowers@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PROG_CC
@@ -24,5 +24,14 @@ AC_ARG_ENABLE([gtk], [  --enable-gtk  build gtk+ programs],[
     enable_gtk=no)
 AM_CONDITIONAL([ENABLE_GTK], [test x$enable_gtk = xyes])
 
-AC_CONFIG_FILES([Makefile firefly-mv-utils-gtk.pc firefly-mv-utils.pc])
+AC_ARG_ENABLE([opencv], [  --enable-opencv  build opencv utils],[
+    PKG_CHECK_MODULES(OPENCV, opencv >= 2.1.0)
+    AC_SUBST(OPENCV_CFLAGS)
+    AC_SUBST(OPENCV_LIBS)
+    enable_opencv=$enableval
+    ],
+    enable_opencv=no)
+AM_CONDITIONAL([ENABLE_OPENCV], [test x$enable_opencv = xyes])
+
+AC_CONFIG_FILES([Makefile firefly-mv-utils-opencv.pc firefly-mv-utils-gtk.pc firefly-mv-utils.pc])
 AC_OUTPUT
