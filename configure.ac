@@ -15,7 +15,7 @@ PKG_CHECK_MODULES(GLIB, glib-2.0)
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
 
-AC_ARG_ENABLE([gtk], [  --enable-gtk  build gtk+ programs],[
+AC_ARG_ENABLE([gtk], [  --enable-gtk  build gtk+ utils],[
     PKG_CHECK_MODULES(GTK, gtk+-2.0)
     AC_SUBST(GTK_CFLAGS)
     AC_SUBST(GTK_LIBS)
