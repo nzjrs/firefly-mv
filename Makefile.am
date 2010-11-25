@@ -26,6 +26,8 @@ endif
 if ENABLE_OPENCV
 pkglib_LTLIBRARIES += libopencvutil.la
 pkgconfig_DATA += firefly-mv-utils-opencv.pc
+bin_PROGRAMS +=     \
+    dc1394-opencv-view
 endif
 
 libutil_ladir = $(pkgincludedir)
@@ -62,4 +64,8 @@ dc1394_view_LDADD = $(GTK_LIBS) libgtkutil.la libutil.la
 dc1394_save_SOURCES = save-to-images.c
 dc1394_save_CFLAGS = $(GTK_CFLAGS)
 dc1394_save_LDADD = $(GTK_LIBS) libgtkutil.la libutil.la
+
+dc1394_opencv_view_SOURCES = opencvview.c
+dc1394_opencv_view_CFLAGS = $(OPENCV_CFLAGS)
+dc1394_opencv_view_LDADD = $(OPENCV_LIBS) libopencvutil.la libutil.la
 
