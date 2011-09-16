@@ -147,7 +147,7 @@ dc1394error_t setup_exposure(
 
     /* turn on the feature - dont know what this means?? */
     err = dc1394_feature_set_power(camera, DC1394_FEATURE_EXPOSURE, DC1394_ON);
-    DC1394_ERR_RTN(err,"Could not turn on the feature");
+    DC1394_ERR_RTN(err,"Could not turn on the exposure feature");
 
     if (manual) {
         uint32_t min, max;
@@ -179,7 +179,7 @@ dc1394error_t setup_brightness(
 
     /* turn on the feature - dont know what this means?? */
     err = dc1394_feature_set_power(camera, DC1394_FEATURE_BRIGHTNESS, DC1394_ON);
-    DC1394_ERR_RTN(err,"Could not turn on the feature");
+    DC1394_ERR_RTN(err,"Could not turn on the brightness feature");
 
     if (manual) {
         uint32_t min, max;
@@ -197,6 +197,36 @@ dc1394error_t setup_brightness(
     } else {
         err = dc1394_feature_set_mode(camera, DC1394_FEATURE_BRIGHTNESS, DC1394_FEATURE_MODE_AUTO);
         DC1394_ERR_RTN(err,"Could not turn off Auto-brightness");
+    }
+
+   return DC1394_SUCCESS;
+}
+
+dc1394error_t get_exposure_and_brightness(
+                dc1394camera_t *camera, 
+                uint32_t *exposure, uint32_t *minexposure, uint32_t *maxexposure,
+                uint32_t *brightness, uint32_t *minbrightness, uint32_t *maxbrightness)
+{
+   dc1394error_t err;
+
+    /* turn on the feature - dont know what this means?? */
+    err = dc1394_feature_set_power(camera, DC1394_FEATURE_EXPOSURE, DC1394_ON);
+    DC1394_ERR_RTN(err,"Could not turn on the exposure feature");
+    err = dc1394_feature_set_power(camera, DC1394_FEATURE_BRIGHTNESS, DC1394_ON);
+    DC1394_ERR_RTN(err,"Could not turn on the brightness feature");
+
+    err = dc1394_feature_get_value(camera, DC1394_FEATURE_EXPOSURE, exposure);
+    DC1394_ERR_RTN(err,"Could not get exposure");
+    if (minexposure != NULL && maxexposure != NULL) {
+        err = dc1394_feature_get_boundaries(camera, DC1394_FEATURE_EXPOSURE, minexposure, maxexposure);
+        DC1394_ERR_RTN(err,"Could not get exposure bounds");
+    }
+
+    err = dc1394_feature_get_value(camera, DC1394_FEATURE_BRIGHTNESS, brightness);
+    DC1394_ERR_RTN(err,"Could not get brightness");
+    if (minbrightness != NULL && maxbrightness != NULL) {
+        err = dc1394_feature_get_boundaries(camera, DC1394_FEATURE_BRIGHTNESS, minbrightness, maxbrightness);
+        DC1394_ERR_RTN(err,"Could not get brightness bounds");
     }
 
    return DC1394_SUCCESS;

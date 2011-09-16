@@ -1,4 +1,4 @@
-AC_INIT([firefly-mv-utils], [0.2], [john.stowers@gmail.com])
+AC_INIT([firefly-mv-utils], [0.2.1], [john.stowers@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PROG_CC

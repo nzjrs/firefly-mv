@@ -81,6 +81,15 @@ dc1394error_t setup_brightness(
                 uint32_t value);
 
 /**
+ * Get camera exposure and brightness (and their ranges - if passing non-NULL to max/minXXX)
+ */
+dc1394error_t get_exposure_and_brightness(
+                dc1394camera_t *camera, 
+                uint32_t *exposure, uint32_t *minexposure, uint32_t *maxexposure,
+                uint32_t *brightness, uint32_t *minbrightness, uint32_t *maxbrightness);
+
+
+/**
  * Function and macro to setup camera from GOption command line arguments
  */
 #define GOPTION_ENTRY_FORMAT(_format)                                                           \
