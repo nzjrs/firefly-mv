@@ -1,8 +1,10 @@
 AC_INIT([firefly-mv-utils], [0.2.1], [john.stowers@gmail.com])
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PROG_CC
 AC_PROG_INSTALL
+AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
 
 AC_DISABLE_SHARED

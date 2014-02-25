@@ -6,9 +6,12 @@ Linux.
 
 Installation
 ------------
-0. Download and install libdc1394-2.1-dev, gtk+-2.0-dev
+0. Download and install
+	libdc1394-2.1-dev
+	gtk+-2.0-dev
 1. Install 11-ptgrey.rules to /etc/udev/rules.d
-2. If you have a fresh checkout, run autoreconf -fi\
+2. If you have a fresh checkout, run:
+	autoreconf -fi
 3. Configure;
        ./configure --enable-gtk
 4. Run dc1394-camls to get your camera's GUID
